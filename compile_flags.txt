@@ -1,0 +1,4 @@
+-Wall
+-pedantic
+-std=c99
+-Iinclude
