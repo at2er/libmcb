@@ -8,7 +8,7 @@ BUILD_DIR = build
 HEADER = mcb
 TARGET = libmcb.a
 
-SUB_DIRS = src src/gnu_asm
+SUB_DIRS = src src/inst src/target
 SRC = $(wildcard *.c $(addsuffix /*.c,$(SUB_DIRS)))
 OBJ = $(addprefix $(BUILD_DIR)/,$(SRC:.c=.o))
 OBJ_DIRS = $(BUILD_DIR) $(addprefix $(BUILD_DIR)/,$(SUB_DIRS))
@@ -32,6 +32,7 @@ $(TARGET): $(OBJ)
 clean:
 	@echo "  CLEAN"
 	@rm -f $(OBJ) $(TARGET)
+	@rm -f test/main
 
 install:
 	mkdir -p $(HEADER_DIR) $(TARGET_DIR)
@@ -48,3 +49,9 @@ ifeq (,$(filter clean,$(MAKECMDGOALS)))
 endif
 
 .PHONY: all clean install uninstall
+.PHONY: test
+
+test: test/main
+test/main: test/main.c $(TARGET)
+	@echo "  CC    " $@
+	@$(CC) $(CFLAGS) -g3 -o $@ $^

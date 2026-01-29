@@ -1,46 +1,64 @@
 /* This file is part of libmcb.
    SPDX-License-Identifier: LGPL-3.0-or-later
 */
-#include "mcb/inst/func.h"
-#include "mcb/operand.h"
-#include "mcb/size.h"
+#include <assert.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include "darr.h"
+#include "mcb/context.h"
+#include "mcb/func.h"
 
-int mcb_impl_call_func(struct mcb_context *context,
-		uint16_t argc,
-		const struct mcb_operand *args,
-		const char *name)
+int mcb_define_func(struct mcb_func *fn,
+		const char *name,
+		enum MCB_TYPE type,
+		struct mcb_context *ctx)
 {
-	return 0;
-}
-
-int mcb_impl_enter_func(struct mcb_context *context,
-		enum MCB_ENTER_FUNC_FLAGS flags,
-		struct mcb_operand *args[],
-		enum MCB_SIZE size,
-		const char *name)
-{
-	if (flags
-			& MCB_ENTER_FUNC_FLAG_EXPORT
-			& MCB_ENTER_FUNC_FLAG_EXPORT_WEAK)
+	assert(fn && name && ctx);
+	memset(fn, 0, sizeof(*fn));
+	fn->name = strdup(name);
+	if (!fn->name)
 		return 1;
+	fn->type = type;
+	darr_append(ctx->fn_arr, ctx->fn_arr_count, fn);
 	return 0;
 }
 
-int mcb_impl_exit_func(struct mcb_context *context)
+int mcb_define_func_arg(struct mcb_func_arg *arg,
+		const char *name,
+		enum MCB_TYPE type,
+		struct mcb_func *fn)
 {
+	assert(arg && name && fn);
+	memset(arg, 0, sizeof(*arg));
+	arg->name = strdup(name);
+	if (!arg->name)
+		return 1;
+	arg->type = type;
+	darr_append(fn->args, fn->argc, arg);
 	return 0;
 }
 
-int mcb_impl_func_ret(struct mcb_context *context,
-		const struct mcb_operand *src)
+void mcb_destory_func(struct mcb_func *fn)
 {
-	return 0;
+	for (int i = 0; i < fn->argc; i++)
+		mcb_destory_func_arg(fn->args[i]);
+	free(fn->args);
+
+	for (size_t i = 0; i < fn->inst_arr_count; i++)
+		mcb_destory_inst(fn->inst_arr[i]);
+	free(fn->inst_arr);
+
+	for (size_t i = 0; i < fn->label_arr_count; i++)
+		mcb_destory_label(fn->label_arr[i]);
+	free(fn->label_arr);
+
+	for (size_t i = 0; i < fn->value_arr_count; i++)
+		mcb_destory_value(fn->value_arr[i]);
+	free(fn->value_arr);
 }
 
-int mcb_impl_prepare_func_call_arg(struct mcb_context *context,
-		uint16_t index,
-		struct mcb_operand *dst,
-		enum MCB_SIZE size)
+void mcb_destory_func_arg(struct mcb_func_arg *arg)
 {
-	return 0;
+	free(arg->name);
 }
