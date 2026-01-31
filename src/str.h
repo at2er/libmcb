@@ -15,7 +15,7 @@
 #define STR_ARGR(S) (int)((S)->len), (S)->s
 
 /* Allocate it with your favourite way.
- * If you allocated it with 'malloc()' or else,
+ * If you allocated it with malloc() or else,
  * you must free it by yourself. */
 struct str {
 	char *s;
@@ -28,9 +28,21 @@ extern struct str *str_append_cstr(struct str *dst, const char *cstr);
 /* @return: [s], if it succeeds, otherwise NULL. */
 extern struct str *str_append_str(struct str *dst, const struct str *src);
 
-/* @return: [s], if it succeeds, otherwise NULL. */
+/* Set '\0' at 's->s[0]' and set 's->len' to 0.
+ * Like str_empty() but won't reset 's->s' to NULL.
+ * You can use [s] again after calling this str_clean().
+ *
+ * @return: [s], if it succeeds, otherwise NULL. */
+extern struct str *str_clean(struct str *s);
+
+/* Reset the member of [s] by zero, but won't free allocated 's->s'.
+ *
+ * @return: [s], if it succeeds, otherwise NULL. */
 extern struct str *str_empty(struct str *s);
 
+/* Expand 's->s' with str_realloc().
+ *
+ * @return: [s], if it succeeds, otherwise NULL. */
 extern struct str *str_expand_siz(struct str *s, size_t more);
 
 /* Free content inside [s], but won't free itself. */
@@ -41,7 +53,7 @@ extern void str_free(struct str *s);
  * @return: [s], if it succeeds, otherwise NULL. */
 extern struct str *str_from_cstr(struct str *s, const char *cstr);
 
-/* Realloc 's->s' and set 's->siz', if the [siz] > s->siz.
+/* Reallocate 's->s' and set 's->siz', if the [siz] > s->siz.
  * So if the [siz] is small than s->s, it won't be reallocated.
  *
  * @return: [s], if it succeeds, otherwise NULL. */
@@ -62,10 +74,13 @@ extern struct str *str_realloc(struct str *s, size_t siz);
 struct str *
 str_append_cstr(struct str *dst, const char *cstr)
 {
-	size_t cstr_len = strlen(cstr);
+	size_t cstr_len;
+	if (!dst || !cstr)
+		return NULL;
+	cstr_len = strlen(cstr);
 	if (!str_realloc(dst, dst->len + cstr_len + 1))
 		return NULL;
-	memcpy(&dst->s[strlen(dst->s)], cstr, cstr_len);
+	memcpy(&dst->s[dst->len], cstr, cstr_len);
 	dst->len += cstr_len;
 	dst->s[dst->len] = '\0';
 	return dst;
@@ -74,12 +89,25 @@ str_append_cstr(struct str *dst, const char *cstr)
 struct str *
 str_append_str(struct str *dst, const struct str *s1)
 {
+	if (!dst || !s1)
+		return NULL;
 	if (!str_realloc(dst, dst->len + s1->len + 1))
 		return NULL;
-	memcpy(&dst->s[strlen(dst->s)], s1->s, s1->len);
+	memcpy(&dst->s[dst->len], s1->s, s1->len);
 	dst->len += s1->len;
 	dst->s[dst->len] = '\0';
 	return dst;
+}
+
+struct str *
+str_clean(struct str *s)
+{
+	if (!s)
+		return NULL;
+	s->len = 0;
+	if (s->siz > 0)
+		s->s[0] = '\0';
+	return s;
 }
 
 struct str *
@@ -106,6 +134,7 @@ void
 str_free(struct str *s)
 {
 	free(s->s);
+	str_empty(s);
 }
 
 struct str *

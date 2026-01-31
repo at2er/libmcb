@@ -16,7 +16,7 @@ OBJ_DEPS = $(addprefix $(BUILD_DIR)/,$(SRC:.c=.d))
 
 CC_CMD = $(CC) $(CFLAGS) -g3 -c -o $@ $<
 
-all: $(TARGET)
+all: test $(TARGET)
 
 $(OBJ_DIRS):
 	mkdir -p $@
