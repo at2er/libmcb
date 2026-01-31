@@ -8,13 +8,16 @@
 
 int mcb_define_context(struct mcb_context *ctx)
 {
-	assert(ctx);
+	if (!ctx)
+		return 1;
 	memset(ctx, 0, sizeof(*ctx));
 	return 0;
 }
 
 void mcb_destory_context(struct mcb_context *ctx)
 {
+	if (!ctx)
+		return;
 	for (size_t i = 0; i < ctx->fn_arr_count; i++)
 		mcb_destory_func(ctx->fn_arr[i]);
 	free(ctx->fn_arr);

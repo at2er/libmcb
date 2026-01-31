@@ -12,7 +12,8 @@ int mcb_define_value(struct mcb_value *val,
 		enum MCB_TYPE type,
 		struct mcb_func *fn)
 {
-	assert(val && name && fn);
+	if (!val || !name || !fn)
+		return 1;
 	memset(val, 0, sizeof(*val));
 	val->name = strdup(name);
 	if (!val->name)
@@ -24,5 +25,7 @@ int mcb_define_value(struct mcb_value *val,
 
 void mcb_destory_value(struct mcb_value *val)
 {
+	if (!val)
+		return;
 	free(val->name);
 }

@@ -11,7 +11,8 @@ int mcb_define_label(struct mcb_label *l,
 		const char *name,
 		struct mcb_func *fn)
 {
-	assert(l && name && fn);
+	if (!l || !name || !fn)
+		return 1;
 	memset(l, 0, sizeof(*l));
 	l->name = strdup(name);
 	if (!l->name)
@@ -22,5 +23,7 @@ int mcb_define_label(struct mcb_label *l,
 
 void mcb_destory_label(struct mcb_label *l)
 {
+	if (!l)
+		return;
 	free(l->name);
 }

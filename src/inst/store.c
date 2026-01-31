@@ -13,7 +13,8 @@ int mcb_inst_store_int(struct mcb_value *container,
 		struct mcb_func *fn)
 {
 	struct mcb_inst *inst;
-	assert(container && fn);
+	if (!container || !fn)
+		return 1;
 	inst = calloc(1, sizeof(*inst));
 	if (!inst)
 		return 1;
@@ -28,7 +29,8 @@ int mcb_inst_store_uint(struct mcb_value *container,
 		struct mcb_func *fn)
 {
 	struct mcb_inst *inst;
-	assert(container && fn);
+	if (!container || !fn)
+		return 1;
 	inst = calloc(1, sizeof(*inst));
 	if (!inst)
 		return 1;

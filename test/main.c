@@ -30,7 +30,7 @@ int main(void)
 
 	struct mcb_func main_fn;
 	struct mcb_func_arg a0;
-	mcb_define_func(&main_fn, "main", MCB_I32, &ctx);
+	mcb_define_func(&main_fn, "main", MCB_I32, MCB_FUNC_EXPORT, &ctx);
 	mcb_define_func_arg(&a0, "a0", MCB_I32, &main_fn);
 
 	struct mcb_label entry;

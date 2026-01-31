@@ -12,13 +12,16 @@
 int mcb_define_func(struct mcb_func *fn,
 		const char *name,
 		enum MCB_TYPE type,
+		enum MCB_FUNC_EXPORT_TYPE export_type,
 		struct mcb_context *ctx)
 {
-	assert(fn && name && ctx);
+	if (!fn || !name || !ctx)
+		return 1;
 	memset(fn, 0, sizeof(*fn));
 	fn->name = strdup(name);
 	if (!fn->name)
 		return 1;
+	fn->export_type = export_type;
 	fn->type = type;
 	darr_append(ctx->fn_arr, ctx->fn_arr_count, fn);
 	return 0;
@@ -29,7 +32,8 @@ int mcb_define_func_arg(struct mcb_func_arg *arg,
 		enum MCB_TYPE type,
 		struct mcb_func *fn)
 {
-	assert(arg && name && fn);
+	if (!arg || !name || !fn)
+		return 1;
 	memset(arg, 0, sizeof(*arg));
 	arg->name = strdup(name);
 	if (!arg->name)
@@ -41,6 +45,8 @@ int mcb_define_func_arg(struct mcb_func_arg *arg,
 
 void mcb_destory_func(struct mcb_func *fn)
 {
+	if (!fn)
+		return;
 	for (int i = 0; i < fn->argc; i++)
 		mcb_destory_func_arg(fn->args[i]);
 	free(fn->args);
@@ -60,5 +66,7 @@ void mcb_destory_func(struct mcb_func *fn)
 
 void mcb_destory_func_arg(struct mcb_func_arg *arg)
 {
+	if (!arg)
+		return;
 	free(arg->name);
 }

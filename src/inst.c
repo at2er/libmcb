@@ -5,6 +5,8 @@
 
 void mcb_destory_inst(struct mcb_inst *inst)
 {
+	if (!inst)
+		return;
 	switch (inst->kind) {
 	case MCB_ADD_INST:
 		// mcb_destory_add_inst(&inst->inner.add);

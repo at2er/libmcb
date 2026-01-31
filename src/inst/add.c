@@ -14,7 +14,8 @@ int mcb_inst_add(struct mcb_value *result,
 		struct mcb_func *fn)
 {
 	struct mcb_inst *inst;
-	assert(result && lhs && rhs && fn);
+	if (!result || !lhs || !rhs || !fn)
+		return 1;
 	inst = calloc(1, sizeof(*inst));
 	if (!inst)
 		return 1;

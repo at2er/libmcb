@@ -11,7 +11,8 @@
 int mcb_append_inst(struct mcb_inst *inst, struct mcb_func *fn)
 {
 	struct mcb_label *last_label = NULL;
-	assert(inst && fn);
+	if (!inst || !fn)
+		return 1;
 	if (fn->label_arr_count)
 		last_label = fn->label_arr[fn->label_arr_count - 1];
 	if (last_label && last_label->beg == NULL)
