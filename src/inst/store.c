@@ -8,7 +8,8 @@
 #include "mcb/value.h"
 #include "utils.h"
 
-int mcb_inst_store_int(struct mcb_value *container,
+int
+mcb_inst_store_int(struct mcb_value *container,
 		int64_t data,
 		struct mcb_func *fn)
 {
@@ -21,10 +22,13 @@ int mcb_inst_store_int(struct mcb_value *container,
 	inst->kind = MCB_STORE_INST;
 	inst->inner.store.container = container;
 	inst->inner.store.operand.i = data;
+	if (mcb_use_value(inst, container))
+		return 1;
 	return mcb_append_inst(inst, fn);
 }
 
-int mcb_inst_store_uint(struct mcb_value *container,
+int
+mcb_inst_store_uint(struct mcb_value *container,
 		uint64_t data,
 		struct mcb_func *fn)
 {

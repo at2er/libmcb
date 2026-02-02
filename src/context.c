@@ -6,7 +6,8 @@
 #include <string.h>
 #include "mcb/context.h"
 
-int mcb_define_context(struct mcb_context *ctx)
+int
+mcb_define_context(struct mcb_context *ctx)
 {
 	if (!ctx)
 		return 1;
@@ -14,7 +15,8 @@ int mcb_define_context(struct mcb_context *ctx)
 	return 0;
 }
 
-void mcb_destory_context(struct mcb_context *ctx)
+void
+mcb_destory_context(struct mcb_context *ctx)
 {
 	if (!ctx)
 		return;

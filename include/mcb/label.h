@@ -10,7 +10,7 @@ struct mcb_func;
 struct mcb_label {
 	char *name;
 
-	struct mcb_inst *beg, *end;
+	struct mcb_inst *beg;
 };
 
 int mcb_define_label(struct mcb_label *l,

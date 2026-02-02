@@ -9,7 +9,8 @@
 #include "mcb/context.h"
 #include "mcb/func.h"
 
-int mcb_define_func(struct mcb_func *fn,
+int
+mcb_define_func(struct mcb_func *fn,
 		const char *name,
 		enum MCB_TYPE type,
 		enum MCB_FUNC_EXPORT_TYPE export_type,
@@ -27,7 +28,8 @@ int mcb_define_func(struct mcb_func *fn,
 	return 0;
 }
 
-int mcb_define_func_arg(struct mcb_func_arg *arg,
+int
+mcb_define_func_arg(struct mcb_func_arg *arg,
 		const char *name,
 		enum MCB_TYPE type,
 		struct mcb_func *fn)
@@ -43,7 +45,8 @@ int mcb_define_func_arg(struct mcb_func_arg *arg,
 	return 0;
 }
 
-void mcb_destory_func(struct mcb_func *fn)
+void
+mcb_destory_func(struct mcb_func *fn)
 {
 	if (!fn)
 		return;
@@ -64,7 +67,8 @@ void mcb_destory_func(struct mcb_func *fn)
 	free(fn->value_arr);
 }
 
-void mcb_destory_func_arg(struct mcb_func_arg *arg)
+void
+mcb_destory_func_arg(struct mcb_func_arg *arg)
 {
 	if (!arg)
 		return;

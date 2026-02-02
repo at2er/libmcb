@@ -5,9 +5,15 @@
 #define LIBMCB_VALUE_H
 #include "type.h"
 
+struct mcb_func;
+
 struct mcb_value {
 	char *name;
 	enum MCB_TYPE type;
+
+	struct mcb_inst *scope_end;
+
+	void *data;
 };
 
 int mcb_define_value(struct mcb_value *val,

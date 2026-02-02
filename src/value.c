@@ -7,7 +7,8 @@
 #include "mcb/func.h"
 #include "mcb/value.h"
 
-int mcb_define_value(struct mcb_value *val,
+int
+mcb_define_value(struct mcb_value *val,
 		const char *name,
 		enum MCB_TYPE type,
 		struct mcb_func *fn)
@@ -23,7 +24,8 @@ int mcb_define_value(struct mcb_value *val,
 	return 0;
 }
 
-void mcb_destory_value(struct mcb_value *val)
+void
+mcb_destory_value(struct mcb_value *val)
 {
 	if (!val)
 		return;

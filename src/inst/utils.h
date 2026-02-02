@@ -7,5 +7,6 @@
 #include "mcb/inst.h"
 
 int mcb_append_inst(struct mcb_inst *inst, struct mcb_func *fn);
+int mcb_use_value(struct mcb_inst *inst, struct mcb_value *value);
 
 #endif

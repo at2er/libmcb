@@ -7,7 +7,8 @@
 #include "mcb/func.h"
 #include "mcb/label.h"
 
-int mcb_define_label(struct mcb_label *l,
+int
+mcb_define_label(struct mcb_label *l,
 		const char *name,
 		struct mcb_func *fn)
 {
@@ -21,7 +22,8 @@ int mcb_define_label(struct mcb_label *l,
 	return 0;
 }
 
-void mcb_destory_label(struct mcb_label *l)
+void
+mcb_destory_label(struct mcb_label *l)
 {
 	if (!l)
 		return;

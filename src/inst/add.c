@@ -8,7 +8,8 @@
 #include "mcb/value.h"
 #include "utils.h"
 
-int mcb_inst_add(struct mcb_value *result,
+int
+mcb_inst_add(struct mcb_value *result,
 		struct mcb_value *lhs,
 		struct mcb_value *rhs,
 		struct mcb_func *fn)
@@ -23,5 +24,11 @@ int mcb_inst_add(struct mcb_value *result,
 	inst->inner.add.result = result;
 	inst->inner.add.lhs = lhs;
 	inst->inner.add.rhs = rhs;
+	if (mcb_use_value(inst, result))
+		return 1;
+	if (mcb_use_value(inst, lhs))
+		return 1;
+	if (mcb_use_value(inst, rhs))
+		return 1;
 	return mcb_append_inst(inst, fn);
 }

@@ -8,7 +8,8 @@
 #include "mcb/target/gnu_asm.h"
 #include "mcb/value.h"
 
-int main(void)
+int
+main(void)
 {
 	/*
 	 *
@@ -18,10 +19,8 @@ int main(void)
 	 *
 	 * fn main(%a0: i32): i32
 	 * entry:
-	 * %v0:i32 = store 1
-	 * %v1:i32 = store 2
-	 * %v2:i32 = add %v0, %v1
-	 * ret %v2
+	 * %v0:i32 = add $1:i32, $2:i32
+	 * ret %v0
 	 *
 	 */
 
@@ -51,7 +50,8 @@ int main(void)
 	mcb_inst_ret(&v2, &main_fn);
 
 	/* output */
-	mcb_target_gnu_asm(stdout, &ctx);
+	if (mcb_target_gnu_asm(stdout, &ctx))
+		return 1;
 	mcb_destory_context(&ctx);
 	return 0;
 }
