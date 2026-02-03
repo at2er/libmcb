@@ -17,7 +17,6 @@ enum MCB_FUNC_EXPORT_TYPE {
 
 struct mcb_func_arg {
 	char *name;
-
 	enum MCB_TYPE type;
 };
 
@@ -38,6 +37,8 @@ struct mcb_func {
 
 	struct mcb_value **value_arr;
 	size_t value_arr_count;
+
+	void *data;
 };
 
 int mcb_define_func(struct mcb_func *fn,

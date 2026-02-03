@@ -14,14 +14,17 @@ main(void)
 	/*
 	 *
 	 * int main() {
-	 *     return 1 + 2;
+	 *     return 1 + 2 + 3;
 	 * }
 	 *
 	 * fn main(%a0: i32): i32
 	 * entry:
-	 * %v0:i32 = add $1:i32, $2:i32
-	 * ret %v0
-	 *
+	 *         %v0:i32 = store $1
+	 *         %v1:i32 = store $2
+	 * RAX ^   %v2:i32 = add %v0, %v1 <- %v0, %v1 scope_end
+	 *     |   %v3:i32 = store $3
+	 *@RAX v^  %v4:i32 = add %v3, %v2 <- %v2, %v3 scope_end
+	 *      v  ret %v4                <- %v4      scope_end
 	 */
 
 	struct mcb_context ctx;
@@ -47,7 +50,15 @@ main(void)
 	mcb_define_value(&v2, "v2", MCB_I32, &main_fn);
 	mcb_inst_add(&v2, &v0, &v1, &main_fn);
 
-	mcb_inst_ret(&v2, &main_fn);
+	struct mcb_value v3;
+	mcb_define_value(&v3, "v3", MCB_I32, &main_fn);
+	mcb_inst_store_int(&v3, 3, &main_fn);
+
+	struct mcb_value v4;
+	mcb_define_value(&v4, "v4", MCB_I32, &main_fn);
+	mcb_inst_add(&v4, &v3, &v2, &main_fn);
+
+	mcb_inst_ret(&v4, &main_fn);
 
 	/* output */
 	if (mcb_target_gnu_asm(stdout, &ctx))
