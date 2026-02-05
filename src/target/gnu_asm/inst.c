@@ -1,0 +1,47 @@
+/* This file is part of libmcb.
+   SPDX-License-Identifier: LGPL-3.0-or-later
+*/
+#include <assert.h>
+#include "inst.h"
+
+int
+build_inst(struct mcb_inst *inst,
+		struct mcb_func *fn,
+		struct gnu_asm *ctx)
+{
+	assert(inst && fn && ctx);
+
+	switch (inst->kind) {
+	case MCB_ADD_INST:
+		return mcb__gnu_asm_build_add_inst(inst, fn, ctx);
+	case MCB_MUL_INST:
+		return mcb__gnu_asm_build_mul_inst(inst, fn, ctx);
+	case MCB_RET_INST:
+		return mcb__gnu_asm_build_ret_inst(inst, fn, ctx);
+	case MCB_STORE_INST:
+		return mcb__gnu_asm_build_store_inst(inst, fn, ctx);
+	case MCB_SUB_INST:
+		return mcb__gnu_asm_build_sub_inst(inst, fn, ctx);
+	}
+
+	return 0;
+}
+
+char
+get_inst_suffix(enum GNU_ASM_VALUE_KIND dst_kind)
+{
+	/* TODO */
+	switch (dst_kind) {
+	case UNKOWN_VALUE:
+		return '\0';
+	case I8_IMM_VALUE:  case I8_REG_VALUE:
+		return 'l';
+	case I16_IMM_VALUE: case I16_REG_VALUE:
+		return 'l';
+	case I32_IMM_VALUE: case I32_REG_VALUE:
+		return 'l';
+	case I64_IMM_VALUE: case I64_REG_VALUE:
+		return 'q';
+	}
+	return '\0';
+}

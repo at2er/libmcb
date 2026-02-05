@@ -1,0 +1,34 @@
+/* This file is part of libmcb.
+   SPDX-License-Identifier: LGPL-3.0-or-later
+*/
+#ifndef LIBMCB_TARGET_GNU_ASM_VALUE_KIND_H
+#define LIBMCB_TARGET_GNU_ASM_VALUE_KIND_H
+
+#define IS_INT_IMM(VALUE_KIND) \
+	((VALUE_KIND) >= I8_IMM_VALUE && \
+	 (VALUE_KIND) <= I64_IMM_VALUE)
+// #define IS_UINT_IMM(KIND)
+// 	((KIND) >= U8_IMM_VALUE &&
+// 	 (KIND) <= U64_IMM_VALUE)
+#define IS_IMM(VALUE_KIND) \
+	(IS_INT_IMM(VALUE_KIND))
+
+#define IS_REG(VALUE_KIND) \
+	((VALUE_KIND) >= I8_REG_VALUE && \
+	 (VALUE_KIND) <= I64_REG_VALUE)
+
+enum GNU_ASM_VALUE_KIND {
+	UNKOWN_VALUE,
+
+	I8_REG_VALUE,
+	I16_REG_VALUE,
+	I32_REG_VALUE,
+	I64_REG_VALUE,
+
+	I8_IMM_VALUE,
+	I16_IMM_VALUE,
+	I32_IMM_VALUE,
+	I64_IMM_VALUE
+};
+
+#endif

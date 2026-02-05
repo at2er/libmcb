@@ -7,6 +7,7 @@
 
 enum MCB_INST_KIND {
 	MCB_ADD_INST,
+	MCB_MUL_INST,
 	MCB_RET_INST,
 	MCB_STORE_INST,
 	MCB_SUB_INST
@@ -19,6 +20,10 @@ struct mcb_inst {
 			struct mcb_value *result;
 			struct mcb_value *lhs, *rhs;
 		} add;
+		struct mcb_mul_inst {
+			struct mcb_value *result;
+			struct mcb_value *lhs, *rhs;
+		} mul;
 		struct mcb_ret_inst {
 			struct mcb_value *val;
 		} ret;
