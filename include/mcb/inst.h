@@ -8,7 +8,8 @@
 enum MCB_INST_KIND {
 	MCB_ADD_INST,
 	MCB_RET_INST,
-	MCB_STORE_INST
+	MCB_STORE_INST,
+	MCB_SUB_INST
 };
 
 struct mcb_inst {
@@ -25,12 +26,11 @@ struct mcb_inst {
 			struct mcb_value *container;
 			union {int64_t i; uint64_t u;} operand;
 		} store;
+		struct mcb_sub_inst {
+			struct mcb_value *result;
+			struct mcb_value *lhs, *rhs;
+		} sub;
 	} inner;
 };
-
-void mcb_destory_inst(struct mcb_inst *inst);
-void mcb_destory_add_inst(struct mcb_add_inst *inst);
-void mcb_destory_ret_inst(struct mcb_ret_inst *inst);
-void mcb_destory_store_inst(struct mcb_store_inst *inst);
 
 #endif

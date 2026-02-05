@@ -82,12 +82,16 @@ static int apply_ret_inst(struct mcb_inst *inst_outer,
 static int apply_store_inst(struct mcb_inst *inst_outer,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx);
+static int apply_sub_inst(struct mcb_inst *inst_outer,
+		struct mcb_func *fn,
+		struct gnu_asm *ctx);
 static int def_fn(struct mcb_func *fn, struct gnu_asm *ctx);
 static int def_fn_begin(struct mcb_func *fn, struct gnu_asm *ctx);
 static int def_label(struct mcb_label *label,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx);
 static void drop_reg(enum GNU_ASM_REG reg, struct mcb_func *fn);
+static void drop_value(struct mcb_value *val, struct mcb_func *fn);
 static int gen_mov(struct str *s,
 		struct gnu_asm_value *dst,
 		struct gnu_asm_value *src);
@@ -145,10 +149,11 @@ apply_add_inst(struct mcb_inst *inst_outer,
 		struct gnu_asm *ctx)
 {
 	struct str dst, src;
-	struct mcb_add_inst *inst = &inst_outer->inner.add;
+	struct mcb_add_inst *inst;
 	struct gnu_asm_value *lhs_val, *rhs_val, *result, *tmp;
 
-	assert(inst && fn && ctx);
+	assert(inst_outer && fn && ctx);
+	inst = &inst_outer->inner.add;
 	assert(inst->lhs && inst->rhs);
 	lhs_val = inst->lhs->data;
 	rhs_val = inst->rhs->data;
@@ -178,13 +183,12 @@ apply_add_inst(struct mcb_inst *inst_outer,
 			drop_reg(result->inner.reg, fn);
 			free(result);
 			result = lhs_val;
+			inst->lhs->data = NULL;
 			inst->result->data = result;
 		}
 		if (!str_from_value(&dst, lhs_val))
 			return 1;
-	}
-
-	if (IS_IMM(lhs_val->kind)) {
+	} else if (IS_IMM(lhs_val->kind)) {
 		if (!str_clean(&ctx->buf))
 			return 1;
 		if (gen_mov(&ctx->buf, result, lhs_val))
@@ -195,7 +199,7 @@ apply_add_inst(struct mcb_inst *inst_outer,
 			return 1;
 	}
 
-	if (!str_from_imm(&src, rhs_val))
+	if (!str_from_value(&src, rhs_val))
 		return 1;
 
 	if (!str_clean(&ctx->buf))
@@ -210,6 +214,11 @@ apply_add_inst(struct mcb_inst *inst_outer,
 
 	str_free(&dst);
 	str_free(&src);
+
+	if (inst->lhs->scope_end == inst_outer)
+		drop_value(inst->lhs, fn);
+	if (inst->rhs->scope_end == inst_outer)
+		drop_value(inst->rhs, fn);
 
 	return 0;
 }
@@ -228,6 +237,8 @@ apply_inst(struct mcb_inst *inst,
 		return apply_ret_inst(inst, fn, ctx);
 	case MCB_STORE_INST:
 		return apply_store_inst(inst, fn, ctx);
+	case MCB_SUB_INST:
+		return apply_sub_inst(inst, fn, ctx);
 	}
 
 	return 0;
@@ -285,6 +296,79 @@ apply_store_inst(struct mcb_inst *inst_outer,
 		return 1;
 	v->inner.imm.i = inst->operand.i;
 	inst->container->data = v;
+	return 0;
+}
+
+int
+apply_sub_inst(struct mcb_inst *inst_outer,
+		struct mcb_func *fn,
+		struct gnu_asm *ctx)
+{
+	struct str dst, src;
+	struct mcb_sub_inst *inst;
+	struct gnu_asm_value *lhs_val, *rhs_val, *result;
+
+	assert(inst_outer && fn && ctx);
+	inst = &inst_outer->inner.sub;
+	assert(inst->lhs && inst->rhs);
+	lhs_val = inst->lhs->data;
+	rhs_val = inst->rhs->data;
+	assert(lhs_val && rhs_val);
+
+	assert(inst->result->data == NULL);
+	result = calloc(1, sizeof(*result));
+	if (!result)
+		return 1;
+	result->kind = map_type_to_value_kind(
+			I8_REG_VALUE,
+			inst->result->type);
+	result->inner.reg = alloc_reg(fn);
+	if (result->inner.reg == REG_COUNT)
+		return 1;
+	inst->result->data = result;
+
+	if (IS_REG(lhs_val->kind)) {
+		if (inst->lhs->scope_end == inst_outer) {
+			drop_reg(result->inner.reg, fn);
+			free(result);
+			result = lhs_val;
+			inst->lhs->data = NULL;
+			inst->result->data = result;
+		}
+		if (!str_from_value(&dst, lhs_val))
+			return 1;
+	} else if (IS_IMM(lhs_val->kind)) {
+		if (!str_clean(&ctx->buf))
+			return 1;
+		if (gen_mov(&ctx->buf, result, lhs_val))
+			return 1;
+		if (!str_append_str(&ctx->text, &ctx->buf))
+			return 1;
+		if (!str_from_value(&dst, result))
+			return 1;
+	}
+
+	if (!str_from_value(&src, rhs_val))
+		return 1;
+
+	if (!str_clean(&ctx->buf))
+		return 1;
+	ctx->buf.len = snprintf(ctx->buf.s, ctx->buf.siz,
+			"sub%c %s, %s\n",
+			get_inst_suffix(lhs_val->kind),
+			src.s, dst.s);
+
+	if (!str_append_str(&ctx->text, &ctx->buf))
+		return 1;
+
+	str_free(&dst);
+	str_free(&src);
+
+	if (inst->lhs->scope_end == inst_outer)
+		drop_value(inst->lhs, fn);
+	if (inst->rhs->scope_end == inst_outer)
+		drop_value(inst->rhs, fn);
+
 	return 0;
 }
 
@@ -371,6 +455,21 @@ drop_reg(enum GNU_ASM_REG reg, struct mcb_func *fn)
 	f->reg_allocated[reg] = false;
 }
 
+void
+drop_value(struct mcb_value *val, struct mcb_func *fn)
+{
+	struct gnu_asm_value *gval;
+	assert(val);
+	gval = val->data;
+	assert(gval);
+
+	if (IS_REG(gval->kind))
+		drop_reg(gval->inner.reg, fn);
+
+	free(gval);
+	val->data = NULL;
+}
+
 int
 gen_mov(struct str *s,
 		struct gnu_asm_value *dst,
@@ -381,6 +480,11 @@ gen_mov(struct str *s,
 
 	if (IS_IMM(dst->kind))
 		return 1;
+
+	if (IS_REG(dst->kind) && IS_REG(src->kind)) {
+		if (dst->inner.reg == src->inner.reg)
+			return 0;
+	}
 
 	if (!str_from_value(&dst_str, dst))
 		return 1;
@@ -407,19 +511,13 @@ get_inst_suffix(enum GNU_ASM_VALUE_KIND dst_kind)
 	switch (dst_kind) {
 	case UNKOWN_VALUE:
 		return '\0';
-
-	case I8_IMM_VALUE:
-	case I8_REG_VALUE:
+	case I8_IMM_VALUE:  case I8_REG_VALUE:
 		return 'l';
-	case I16_IMM_VALUE:
-	case I16_REG_VALUE:
+	case I16_IMM_VALUE: case I16_REG_VALUE:
 		return 'l';
-
-	case I32_IMM_VALUE:
-	case I32_REG_VALUE:
+	case I32_IMM_VALUE: case I32_REG_VALUE:
 		return 'l';
-	case I64_IMM_VALUE:
-	case I64_REG_VALUE:
+	case I64_IMM_VALUE: case I64_REG_VALUE:
 		return 'q';
 	}
 	return '\0';

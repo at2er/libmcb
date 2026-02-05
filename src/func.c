@@ -54,8 +54,7 @@ mcb_destory_func(struct mcb_func *fn)
 		mcb_destory_func_arg(fn->args[i]);
 	free(fn->args);
 
-	for (size_t i = 0; i < fn->inst_arr_count; i++)
-		mcb_destory_inst(fn->inst_arr[i]);
+	/* don't need free element now */
 	free(fn->inst_arr);
 
 	for (size_t i = 0; i < fn->label_arr_count; i++)
