@@ -2,6 +2,7 @@
    SPDX-License-Identifier: LGPL-3.0-or-later
 */
 #include <assert.h>
+#define LIBMCB_STRIP
 #include "inst.h"
 
 int
@@ -13,15 +14,15 @@ build_inst(struct mcb_inst *inst,
 
 	switch (inst->kind) {
 	case MCB_ADD_INST:
-		return mcb__gnu_asm_build_add_inst(inst, fn, ctx);
+		return build_add_inst(inst, fn, ctx);
 	case MCB_MUL_INST:
-		return mcb__gnu_asm_build_mul_inst(inst, fn, ctx);
+		return build_mul_inst(inst, fn, ctx);
 	case MCB_RET_INST:
-		return mcb__gnu_asm_build_ret_inst(inst, fn, ctx);
+		return build_ret_inst(inst, fn, ctx);
 	case MCB_STORE_INST:
-		return mcb__gnu_asm_build_store_inst(inst, fn, ctx);
+		return build_store_inst(inst, fn, ctx);
 	case MCB_SUB_INST:
-		return mcb__gnu_asm_build_sub_inst(inst, fn, ctx);
+		return build_sub_inst(inst, fn, ctx);
 	}
 
 	return 0;

@@ -8,6 +8,7 @@
 #include "mcb/inst.h"
 #include "mcb/value.h"
 
+#define LIBMCB_STRIP
 #include "gen_mov.h"
 #include "gnu_asm.h"
 #include "inst.h"
@@ -26,6 +27,10 @@ build_add_inst(struct mcb_inst *inst_outer,
 
 	assert(inst_outer && fn && ctx);
 	inst = &inst_outer->inner.add;
+	assert(inst->result && inst->result->scope_end);
+	if (inst->result->scope_end == inst_outer)
+		return 0;
+
 	assert(inst->lhs && inst->rhs);
 	lhs_val = inst->lhs->data;
 	rhs_val = inst->rhs->data;
@@ -38,7 +43,7 @@ build_add_inst(struct mcb_inst *inst_outer,
 	result->kind = map_type_to_value_kind(
 			I8_REG_VALUE,
 			inst->result->type);
-	result->inner.reg = alloc_reg(fn);
+	result->inner.reg = alloc_reg(result, fn);
 	if (result->inner.reg == REG_COUNT)
 		return 1;
 	inst->result->data = result;

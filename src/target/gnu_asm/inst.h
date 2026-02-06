@@ -9,7 +9,7 @@
 #include "gnu_asm.h"
 #include "value.h"
 
-#ifndef LIBMCB_NO_STRIP
+#ifdef LIBMCB_STRIP
 #define build_add_inst   mcb__gnu_asm_build_add_inst
 #define build_inst       mcb__gnu_asm_build_inst
 #define build_mul_inst   mcb__gnu_asm_build_mul_inst

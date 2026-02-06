@@ -20,7 +20,7 @@ mcb_inst_mul(struct mcb_value *result,
 	inst = calloc(1, sizeof(*inst));
 	if (!inst)
 		return 1;
-	inst->kind = MCB_ADD_INST;
+	inst->kind = MCB_MUL_INST;
 	inst->inner.mul.result = result;
 	inst->inner.mul.lhs = lhs;
 	inst->inner.mul.rhs = rhs;

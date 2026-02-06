@@ -7,6 +7,7 @@
 #include "mcb/func.h"
 #include "mcb/value.h"
 
+#define LIBMCB_STRIP
 #include "reg.h"
 #include "value.h"
 
@@ -28,6 +29,20 @@ drop_value(struct mcb_value *val, struct mcb_func *fn)
 }
 
 enum GNU_ASM_VALUE_KIND
+map_bytes_to_value_kind(enum GNU_ASM_VALUE_KIND base, int bytes)
+{
+	assert(base != UNKOWN_VALUE);
+	assert(bytes != -1);
+	switch (bytes) {
+	case 1: return base;
+	case 2: return base + 1;
+	case 4: return base + 2;
+	case 8: return base + 3;
+	}
+	return UNKOWN_VALUE;
+}
+
+enum GNU_ASM_VALUE_KIND
 map_type_to_value_kind(enum GNU_ASM_VALUE_KIND base, enum MCB_TYPE t)
 {
 	assert(base != UNKOWN_VALUE);
@@ -40,8 +55,30 @@ map_type_to_value_kind(enum GNU_ASM_VALUE_KIND base, enum MCB_TYPE t)
 	return UNKOWN_VALUE;
 }
 
+int
+map_value_kind_to_bytes(enum GNU_ASM_VALUE_KIND kind)
+{
+	switch (kind) {
+	case UNKOWN_VALUE:  return -1;
+	case I8_IMM_VALUE:  case I8_REG_VALUE:  return 1;
+	case I16_IMM_VALUE: case I16_REG_VALUE: return 2;
+	case I32_IMM_VALUE: case I32_REG_VALUE: return 4;
+	case I64_IMM_VALUE: case I64_REG_VALUE: return 8;
+	}
+	return -1;
+}
+
+enum GNU_ASM_VALUE_KIND
+mcb__gnu_asm_remap_value_kind(
+		enum GNU_ASM_VALUE_KIND base,
+		enum GNU_ASM_VALUE_KIND kind)
+{
+	int bytes = map_value_kind_to_bytes(kind);
+	return map_bytes_to_value_kind(base, bytes);
+}
+
 struct str *
-str_from_imm(struct str *s, struct gnu_asm_value *v)
+str_from_imm(struct str *s, const struct gnu_asm_value *v)
 {
 	int ret = 0;
 	assert(s && v);
@@ -60,7 +97,7 @@ str_from_imm(struct str *s, struct gnu_asm_value *v)
 }
 
 struct str *
-str_from_value(struct str *s, struct gnu_asm_value *v)
+str_from_value(struct str *s, const struct gnu_asm_value *v)
 {
 	int reg_off;
 	assert(s && v);

@@ -6,6 +6,7 @@
 #include "mcb/func.h"
 #include "mcb/label.h"
 
+#define LIBMCB_STRIP
 #include "label.h"
 
 #include "../../str.h"

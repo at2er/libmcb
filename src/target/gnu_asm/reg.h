@@ -14,14 +14,18 @@ enum GNU_ASM_REG {
 	REG_COUNT
 };
 
-#ifndef LIBMCB_NO_STRIP
+struct gnu_asm_value;
+
+#ifdef LIBMCB_STRIP
 #define alloc_reg            mcb__gnu_asm_alloc_reg
 #define drop_reg             mcb__gnu_asm_drop_reg
 #define reg_offset_from_kind mcb__gnu_asm_reg_offset_from_kind
 #define str_from_reg         mcb__gnu_asm_str_from_reg
 #endif
 
-enum GNU_ASM_REG mcb__gnu_asm_alloc_reg(struct mcb_func *fn);
+enum GNU_ASM_REG mcb__gnu_asm_alloc_reg(
+		struct gnu_asm_value *user,
+		struct mcb_func *fn);
 void mcb__gnu_asm_drop_reg(enum GNU_ASM_REG reg, struct mcb_func *fn);
 int mcb__gnu_asm_reg_offset_from_kind(enum GNU_ASM_VALUE_KIND kind);
 struct str *mcb__gnu_asm_str_from_reg(struct str *s,

@@ -6,12 +6,13 @@
 #include <stdbool.h>
 #include "gnu_asm.h"
 #include "reg.h"
+#include "value.h"
 
 struct gnu_asm_func {
-	bool reg_allocated[REG_COUNT];
+	struct gnu_asm_value *reg_allocated[REG_COUNT];
 };
 
-#ifndef LIBMCB_NO_STRIP
+#ifdef LIBMCB_STRIP
 #define define_func mcb__gnu_asm_define_func
 #endif
 

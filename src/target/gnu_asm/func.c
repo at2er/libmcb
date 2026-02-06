@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "mcb/func.h"
 
+#define LIBMCB_STRIP
 #include "func.h"
 #include "gnu_asm.h"
 #include "inst.h"

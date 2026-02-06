@@ -11,6 +11,7 @@
 #include "mcb/target/gnu_asm.h"
 #include "mcb/value.h"
 
+#define LIBMCB_STRIP
 #include "func.h"
 #include "gnu_asm.h"
 #include "reg.h"

@@ -19,18 +19,32 @@ struct gnu_asm_value {
 	} inner;
 };
 
-#ifndef LIBMCB_NO_STRIP
-#define drop_value             mcb__gnu_asm_drop_value
-#define map_type_to_value_kind mcb__gnu_asm_map_type_to_value_kind
-#define str_from_value         mcb__gnu_asm_str_from_value
-#define str_from_imm           mcb__gnu_asm_str_from_imm
+#ifdef LIBMCB_STRIP
+#define drop_value              mcb__gnu_asm_drop_value
+#define map_bytes_to_value_kind mcb__gnu_asm_map_bytes_to_value_kind
+#define map_type_to_value_kind  mcb__gnu_asm_map_type_to_value_kind
+#define map_value_kind_to_bytes mcb__gnu_asm_map_value_kind_to_bytes
+#define remap_value_kind        mcb__gnu_asm_remap_value_kind
+#define str_from_value          mcb__gnu_asm_str_from_value
+#define str_from_imm            mcb__gnu_asm_str_from_imm
 #endif
 
 void mcb__gnu_asm_drop_value(struct mcb_value *val, struct mcb_func *fn);
+enum GNU_ASM_VALUE_KIND mcb__gnu_asm_map_bytes_to_value_kind(
+		enum GNU_ASM_VALUE_KIND base,
+		int bytes);
 enum GNU_ASM_VALUE_KIND mcb__gnu_asm_map_type_to_value_kind(
 		enum GNU_ASM_VALUE_KIND base,
 		enum MCB_TYPE t);
-struct str *mcb__gnu_asm_str_from_value(struct str *s, struct gnu_asm_value *v);
-struct str *mcb__gnu_asm_str_from_imm(struct str *s, struct gnu_asm_value *v);
+int mcb__gnu_asm_map_value_kind_to_bytes(enum GNU_ASM_VALUE_KIND kind);
+enum GNU_ASM_VALUE_KIND mcb__gnu_asm_remap_value_kind(
+		enum GNU_ASM_VALUE_KIND base,
+		enum GNU_ASM_VALUE_KIND kind);
+struct str *mcb__gnu_asm_str_from_value(
+		struct str *s,
+		const struct gnu_asm_value *v);
+struct str *mcb__gnu_asm_str_from_imm(
+		struct str *s,
+		const struct gnu_asm_value *v);
 
 #endif

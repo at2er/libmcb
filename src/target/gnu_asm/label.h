@@ -7,7 +7,7 @@
 #include "mcb/label.h"
 #include "gnu_asm.h"
 
-#ifndef LIBMCB_NO_STRIP
+#ifdef LIBMCB_STRIP
 #define define_label mcb__gnu_asm_define_label
 #endif
 

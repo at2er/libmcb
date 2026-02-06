@@ -2,6 +2,7 @@
    SPDX-License-Identifier: LGPL-3.0-or-later
 */
 #include <assert.h>
+#define LIBMCB_STRIP
 #include "func.h"
 #include "reg.h"
 #include "../../macros.h"
@@ -32,13 +33,13 @@ static const char *regs[REG_COUNT][4] = {
 };
 
 enum GNU_ASM_REG
-alloc_reg(struct mcb_func *fn)
+alloc_reg(struct gnu_asm_value *user, struct mcb_func *fn)
 {
 	struct gnu_asm_func *f = fn->data;
 	assert(f);
 	for (unsigned int i = 0; i < LENGTH(reg_alloc_priority); i++) {
 		if (!f->reg_allocated[reg_alloc_priority[i]]) {
-			f->reg_allocated[reg_alloc_priority[i]] = true;
+			f->reg_allocated[reg_alloc_priority[i]] = user;
 			return reg_alloc_priority[i];
 		}
 	}

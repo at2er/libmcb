@@ -6,12 +6,12 @@
 #include "value.h"
 #include "../../str.h"
 
-#ifndef LIBMCB_NO_STRIP
+#ifdef LIBMCB_STRIP
 #define gen_mov mcb__gnu_asm_gen_mov
 #endif
 
 int mcb__gnu_asm_gen_mov(struct str *s,
-		struct gnu_asm_value *dst,
-		struct gnu_asm_value *src);
+		const struct gnu_asm_value *dst,
+		const struct gnu_asm_value *src);
 
 #endif

@@ -8,6 +8,7 @@
 #include "mcb/inst.h"
 #include "mcb/value.h"
 
+#define LIBMCB_STRIP
 #include "gnu_asm.h"
 #include "inst.h"
 #include "value.h"

@@ -4,23 +4,25 @@
 #include <assert.h>
 #include <stdio.h>
 
+#define LIBMCB_STRIP
 #include "gen_mov.h"
 #include "inst.h"
 #include "reg.h"
 #include "value.h"
 
+#include "../../err.h"
 #include "../../str.h"
 
 int
 gen_mov(struct str *s,
-		struct gnu_asm_value *dst,
-		struct gnu_asm_value *src)
+		const struct gnu_asm_value *dst,
+		const struct gnu_asm_value *src)
 {
 	struct str dst_str, src_str;
 	assert(s && dst && src);
 
 	if (IS_IMM(dst->kind))
-		return 1;
+		ereturn(1, "move to imm");
 
 	if (IS_REG(dst->kind) && IS_REG(src->kind)) {
 		if (dst->inner.reg == src->inner.reg)
