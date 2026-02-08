@@ -13,6 +13,7 @@
 #include "inst.h"
 #include "value.h"
 
+#include "../../ealloc.h"
 #include "../../str.h"
 
 int
@@ -23,9 +24,7 @@ build_store_inst(struct mcb_inst *inst_outer,
 	struct mcb_store_inst *inst = &inst_outer->inner.store;
 	struct gnu_asm_value *v;
 	assert(inst && fn && ctx);
-	v = calloc(1, sizeof(*v));
-	if (!v)
-		return 1;
+	v = ecalloc(1, sizeof(*v));
 	v->kind = map_type_to_value_kind(
 			I8_IMM_VALUE,
 			inst->container->type);

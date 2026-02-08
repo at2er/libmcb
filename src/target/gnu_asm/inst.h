@@ -11,6 +11,7 @@
 
 #ifdef LIBMCB_STRIP
 #define build_add_inst   mcb__gnu_asm_build_add_inst
+#define build_div_inst   mcb__gnu_asm_build_div_inst
 #define build_inst       mcb__gnu_asm_build_inst
 #define build_mul_inst   mcb__gnu_asm_build_mul_inst
 #define build_ret_inst   mcb__gnu_asm_build_ret_inst
@@ -20,6 +21,9 @@
 #endif
 
 int mcb__gnu_asm_build_add_inst(struct mcb_inst *inst_outer,
+		struct mcb_func *fn,
+		struct gnu_asm *ctx);
+int mcb__gnu_asm_build_div_inst(struct mcb_inst *inst_outer,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx);
 int mcb__gnu_asm_build_inst(struct mcb_inst *inst,

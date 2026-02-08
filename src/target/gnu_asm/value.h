@@ -25,6 +25,7 @@ struct gnu_asm_value {
 #define map_type_to_value_kind  mcb__gnu_asm_map_type_to_value_kind
 #define map_value_kind_to_bytes mcb__gnu_asm_map_value_kind_to_bytes
 #define remap_value_kind        mcb__gnu_asm_remap_value_kind
+
 #define str_from_value          mcb__gnu_asm_str_from_value
 #define str_from_imm            mcb__gnu_asm_str_from_imm
 #endif

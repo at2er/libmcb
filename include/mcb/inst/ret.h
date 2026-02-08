@@ -6,6 +6,10 @@
 #include "mcb/func.h"
 #include "mcb/value.h"
 
+struct mcb_ret_inst {
+	struct mcb_value *val;
+};
+
 int mcb_inst_ret(struct mcb_value *val, struct mcb_func *fn);
 
 #endif

@@ -11,6 +11,7 @@
 #include "reg.h"
 #include "value.h"
 
+#include "../../err.h"
 #include "../../str.h"
 
 void
@@ -19,7 +20,8 @@ drop_value(struct mcb_value *val, struct mcb_func *fn)
 	struct gnu_asm_value *gval;
 	assert(val);
 	gval = val->data;
-	assert(gval);
+	if (!gval)
+		return;
 
 	if (IS_REG(gval->kind))
 		drop_reg(gval->inner.reg, fn);
@@ -69,7 +71,7 @@ map_value_kind_to_bytes(enum GNU_ASM_VALUE_KIND kind)
 }
 
 enum GNU_ASM_VALUE_KIND
-mcb__gnu_asm_remap_value_kind(
+remap_value_kind(
 		enum GNU_ASM_VALUE_KIND base,
 		enum GNU_ASM_VALUE_KIND kind)
 {
@@ -82,17 +84,17 @@ str_from_imm(struct str *s, const struct gnu_asm_value *v)
 {
 	int ret = 0;
 	assert(s && v);
-	if (!str_empty(s))
-		return NULL;
-	if (!str_realloc(s, 32))
-		return NULL;
+	estr_empty(s);
+	estr_realloc(s, 32);
 	if (IS_INT_IMM(v->kind)) {
 		ret = snprintf(s->s, s->siz, "$%ld", v->inner.imm.i);
 		if (ret < 0)
-			return NULL;
+			goto err;
 		s->len = ret;
 		return s;
 	}
+err:
+	eabort("str_from_imm()");
 	return NULL;
 }
 
@@ -108,5 +110,6 @@ str_from_value(struct str *s, const struct gnu_asm_value *v)
 		assert(reg_off != -1);
 		return str_from_reg(s, v->inner.reg, reg_off);
 	}
+	eabort("str_from_imm()");
 	return NULL;
 }

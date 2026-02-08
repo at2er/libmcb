@@ -28,16 +28,17 @@ static void build_rhs(struct str *src,
 		const struct gnu_asm_value *val,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx);
-static int gen_imul(enum GNU_ASM_VALUE_KIND result_kind,
-		struct str *src,
+static void clean_rax(const struct gnu_asm_value *lhs,
+		struct mcb_func *fn,
 		struct gnu_asm *ctx);
-static int gen_mul(enum GNU_ASM_VALUE_KIND result_kind,
-		struct str *src,
+static void clean_rdx(
+		struct gnu_asm_value *rem,
+		struct mcb_func *fn,
 		struct gnu_asm *ctx);
-static void get_lhs_and_rhs(
+static int get_lhs_and_rhs(
 		struct gnu_asm_value **lhs,
 		struct gnu_asm_value **rhs,
-		const struct mcb_mul_inst *inst);
+		const struct mcb_div_inst *inst);
 static struct gnu_asm_value *get_result(
 		const struct mcb_value *res,
 		struct mcb_func *fn);
@@ -85,39 +86,79 @@ build_rhs(struct str *src,
 	}
 }
 
-int
-gen_imul(enum GNU_ASM_VALUE_KIND result_kind,
-		struct str *src,
+void
+clean_rax(const struct gnu_asm_value *lhs,
+		struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
-	return snprintf(ctx->buf.s, ctx->buf.siz,
-			"imul%c %s\n",
-			get_inst_suffix(result_kind),
-			src->s);
-}
+	struct gnu_asm_func *gfn;
+	assert(fn && fn->data);
+	gfn = fn->data;
+	if (!gfn->reg_allocated[RAX])
+		return;
+	if (lhs == gfn->reg_allocated[RAX])
+		return;
 
-int
-gen_mul(enum GNU_ASM_VALUE_KIND result_kind,
-		struct str *src,
-		struct gnu_asm *ctx)
-{
-	return snprintf(ctx->buf.s, ctx->buf.siz,
-			"mul%c %s\n",
-			get_inst_suffix(result_kind),
-			src->s);
+	if (mov_reg_user(RAX, fn, ctx))
+		eabort("mov_reg_user()");
+	drop_reg(RAX, fn);
 }
 
 void
+clean_rdx(struct gnu_asm_value *rem,
+		struct mcb_func *fn,
+		struct gnu_asm *ctx)
+{
+	struct gnu_asm_func *gfn;
+	assert(fn && fn->data);
+	gfn = fn->data;
+	if (!gfn->reg_allocated[RDX])
+		return;
+
+	if (mov_reg_user(RDX, fn, ctx))
+		eabort("mov_reg_user()");
+	drop_reg(RDX, fn);
+
+	assert(alloc_reg(RDX, rem, fn) == RDX);
+	estr_clean(&ctx->buf);
+}
+
+int
+gen_div(enum GNU_ASM_VALUE_KIND result_kind,
+		struct str *src,
+		struct gnu_asm *ctx)
+{
+	return snprintf(ctx->buf.s, ctx->buf.siz,
+			"div%c %s\n",
+			get_inst_suffix(result_kind),
+			src->s);
+}
+
+int
+gen_idiv(enum GNU_ASM_VALUE_KIND result_kind,
+		struct str *src,
+		struct gnu_asm *ctx)
+{
+	return snprintf(ctx->buf.s, ctx->buf.siz,
+			"idiv%c %s\n",
+			get_inst_suffix(result_kind),
+			src->s);
+}
+
+int
 get_lhs_and_rhs(struct gnu_asm_value **lhs,
 		struct gnu_asm_value **rhs,
-		const struct mcb_mul_inst *inst)
+		const struct mcb_div_inst *inst)
 {
 	assert(inst);
-	assert(inst->lhs && inst->rhs);
+	assert(inst->lhs && inst->rhs && inst->rem);
 	assert(lhs && rhs);
 	*lhs = inst->lhs->data;
 	*rhs = inst->rhs->data;
 	assert(*lhs && *rhs);
+	if (IS_IMM((*rhs)->kind) && (*rhs)->inner.imm.i == 0)
+		eabort("divide by zero");
+	return 0;
 }
 
 struct gnu_asm_value *
@@ -147,43 +188,48 @@ need_mov_to_rax(const struct gnu_asm_value *val)
 }
 
 int
-build_mul_inst(struct mcb_inst *inst_outer,
+build_div_inst(struct mcb_inst *inst_outer,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
-	struct mcb_mul_inst *inst;
+	struct mcb_div_inst *inst;
 	int len;
-	struct gnu_asm_value *lhs_val, *rhs_val, *result;
+	struct gnu_asm_value *lhs_val, *rhs_val, *result, *rem;
 	struct str src;
 
 	assert(inst_outer && fn && ctx);
-	inst = &inst_outer->inner.mul;
+	inst = &inst_outer->inner.div;
 
 	assert(inst->result && inst->result->scope_end);
 	if (inst->result->scope_end == inst_outer)
 		return 0;
 
-	get_lhs_and_rhs(&lhs_val, &rhs_val, inst);
-	if (((struct gnu_asm_func*)fn->data)->reg_allocated[RAX]) {
-		if (mov_reg_user(RAX, fn, ctx))
-			eabort("mov_reg_user()");
-		drop_reg(RAX, fn);
+	if (get_lhs_and_rhs(&lhs_val, &rhs_val, inst))
+		return 1;
+
+	rem = ecalloc(1, sizeof(*rem));
+	clean_rax(lhs_val, fn, ctx);
+	clean_rdx(rem, fn, ctx);
+
+	if (IS_REG(lhs_val->kind) &&
+			lhs_val->inner.reg == RAX &&
+			inst->lhs->scope_end == inst_outer) {
+		result = inst->result->data = lhs_val;
+		inst->lhs->data = NULL;
+	} else {
+		result = inst->result->data = get_result(inst->result, fn);
 	}
-	inst->result->data = result = get_result(inst->result, fn);
 
 	build_lhs(result, lhs_val, fn, ctx);
 	build_rhs(&src, rhs_val, fn, ctx);
 
 	estr_clean(&ctx->buf);
-
-	if (IS_INT(result->kind)) {
-		len = gen_imul(result->kind, &src, ctx);
-	} else {
-		len = gen_mul(result->kind, &src, ctx);
-	}
-
+	len = snprintf(ctx->buf.s, ctx->buf.siz,
+			IS_INT(result->kind) ? "idiv%c %s\n" : "div%c %s\n",
+			get_inst_suffix(result->kind),
+			src.s);
 	if (len < 0)
-		return 1;
+		ereturn(1, "gen_idiv() or gen_div()");
 	ctx->buf.len = len;
 	estr_append_str(&ctx->text, &ctx->buf);
 

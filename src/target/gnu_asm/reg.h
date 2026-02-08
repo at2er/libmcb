@@ -6,6 +6,8 @@
 #include "mcb/func.h"
 #include "value_kind.h"
 
+#define AUTO_ALLOC_REG REG_COUNT
+
 enum GNU_ASM_REG {
 	RBP, RSP,
 	RAX, RBX, RCX, RDX,
@@ -24,6 +26,7 @@ struct gnu_asm_value;
 #endif
 
 enum GNU_ASM_REG mcb__gnu_asm_alloc_reg(
+		enum GNU_ASM_REG reg,
 		struct gnu_asm_value *user,
 		struct mcb_func *fn);
 void mcb__gnu_asm_drop_reg(enum GNU_ASM_REG reg, struct mcb_func *fn);

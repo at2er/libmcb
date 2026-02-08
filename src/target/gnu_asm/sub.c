@@ -14,6 +14,8 @@
 #include "inst.h"
 #include "value.h"
 
+#include "../../ealloc.h"
+#include "../../err.h"
 #include "../../str.h"
 
 int
@@ -37,15 +39,13 @@ build_sub_inst(struct mcb_inst *inst_outer,
 	assert(lhs_val && rhs_val);
 
 	assert(inst->result->data == NULL);
-	result = calloc(1, sizeof(*result));
-	if (!result)
-		return 1;
+	result = ecalloc(1, sizeof(*result));
 	result->kind = map_type_to_value_kind(
 			I8_REG_VALUE,
 			inst->result->type);
-	result->inner.reg = alloc_reg(result, fn);
+	result->inner.reg = alloc_reg(AUTO_ALLOC_REG, result, fn);
 	if (result->inner.reg == REG_COUNT)
-		return 1;
+		eabort("alloc_reg()");
 	inst->result->data = result;
 
 	if (IS_REG(lhs_val->kind)) {
@@ -56,31 +56,24 @@ build_sub_inst(struct mcb_inst *inst_outer,
 			inst->lhs->data = NULL;
 			inst->result->data = result;
 		}
-		if (!str_from_value(&dst, lhs_val))
-			return 1;
+		str_from_value(&dst, lhs_val);
 	} else if (IS_IMM(lhs_val->kind)) {
-		if (!str_clean(&ctx->buf))
-			return 1;
+		estr_clean(&ctx->buf);
 		if (gen_mov(&ctx->buf, result, lhs_val))
-			return 1;
-		if (!str_append_str(&ctx->text, &ctx->buf))
-			return 1;
-		if (!str_from_value(&dst, result))
-			return 1;
+			eabort("gen_mov()");
+		estr_append_str(&ctx->text, &ctx->buf);
+		str_from_value(&dst, result);
 	}
 
-	if (!str_from_value(&src, rhs_val))
-		return 1;
+	str_from_value(&src, rhs_val);
 
-	if (!str_clean(&ctx->buf))
-		return 1;
+	estr_clean(&ctx->buf);
 	ctx->buf.len = snprintf(ctx->buf.s, ctx->buf.siz,
 			"sub%c %s, %s\n",
 			get_inst_suffix(lhs_val->kind),
 			src.s, dst.s);
 
-	if (!str_append_str(&ctx->text, &ctx->buf))
-		return 1;
+	estr_append_str(&ctx->text, &ctx->buf);
 
 	str_free(&dst);
 	str_free(&src);

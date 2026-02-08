@@ -33,16 +33,27 @@ static const char *regs[REG_COUNT][4] = {
 };
 
 enum GNU_ASM_REG
-alloc_reg(struct gnu_asm_value *user, struct mcb_func *fn)
+alloc_reg(enum GNU_ASM_REG reg,
+		struct gnu_asm_value *user,
+		struct mcb_func *fn)
 {
 	struct gnu_asm_func *f = fn->data;
 	assert(f);
+
+	if (reg != AUTO_ALLOC_REG) {
+		if (f->reg_allocated[reg])
+			return REG_COUNT;
+		f->reg_allocated[reg] = user;
+		return reg;
+	}
+
 	for (unsigned int i = 0; i < LENGTH(reg_alloc_priority); i++) {
 		if (!f->reg_allocated[reg_alloc_priority[i]]) {
 			f->reg_allocated[reg_alloc_priority[i]] = user;
 			return reg_alloc_priority[i];
 		}
 	}
+
 	return REG_COUNT;
 }
 

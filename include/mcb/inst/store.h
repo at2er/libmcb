@@ -7,6 +7,11 @@
 #include "mcb/func.h"
 #include "mcb/value.h"
 
+struct mcb_store_inst {
+	struct mcb_value *container;
+	union {int64_t i; uint64_t u;} operand;
+};
+
 int mcb_inst_store_int(struct mcb_value *container,
 		int64_t data,
 		struct mcb_func *fn);

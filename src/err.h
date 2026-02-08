@@ -3,14 +3,26 @@
 #define LIBMCB_ERR_H
 #include <stdio.h>
 
-#ifndef DISABLE_EPRINTF_COLOR
+#ifndef DISABLE_ERR_COLOR
 #define ERR_COLOR(S) "\x1b[31m" S "\x1b[0m"
 #else
 #define ERR_COLOR(S) S
 #endif
 
-#define ERR_FMT "[libmcb:%s:%s:" ERR_COLOR("error") "]: "
-#define ERR_ARG __FILE__, __func__
+#define ERR_ARG __FILE__, __func__, __LINE__
+#define ERR_FMT "[libmcb:%s:%s:%d: " ERR_COLOR("error") "]: "
+
+#define eabort(MSG) \
+	do { \
+		eprint(MSG); \
+		abort(); \
+	} while (0);
+
+#define eabortf(MSG_FMT, ...) \
+	do { \
+		eprintf(MSG_FMT, __VA_ARGS__); \
+		abort(); \
+	} while (0);
 
 #define eprint(MSG) \
 	fprintf(stderr, ERR_FMT MSG "\n", ERR_ARG)
