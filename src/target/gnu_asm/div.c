@@ -110,6 +110,7 @@ clean_rdx(struct gnu_asm_value *rem,
 		struct gnu_asm *ctx)
 {
 	struct gnu_asm_func *gfn;
+	enum GNU_ASM_REG r;
 	assert(fn && fn->data);
 	gfn = fn->data;
 	if (!gfn->reg_allocated[RDX])
@@ -119,7 +120,8 @@ clean_rdx(struct gnu_asm_value *rem,
 		eabort("mov_reg_user()");
 	drop_reg(RDX, fn);
 
-	assert(alloc_reg(RDX, rem, fn) == RDX);
+	r = alloc_reg(RDX, rem, fn);
+	assert(r == RDX);
 	estr_clean(&ctx->buf);
 }
 
