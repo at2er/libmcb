@@ -5,44 +5,53 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include "darr.h"
 #include "mcb/context.h"
 #include "mcb/func.h"
 
-int
-mcb_define_func(struct mcb_func *fn,
-		const char *name,
+#include "darr.h"
+#include "ealloc.h"
+#include "err.h"
+
+struct mcb_func *
+mcb_define_func(const char *name,
 		enum MCB_TYPE type,
 		enum MCB_FUNC_EXPORT_TYPE export_type,
 		struct mcb_context *ctx)
 {
-	if (!fn || !name || !ctx)
-		return 1;
-	memset(fn, 0, sizeof(*fn));
+	struct mcb_func *fn;
+	if (!name || !ctx)
+		ereturn(NULL, "!name || !ctx");
+	fn = ecalloc(1, sizeof(*fn));
 	fn->name = strdup(name);
 	if (!fn->name)
-		return 1;
+		goto err_null_name;
 	fn->export_type = export_type;
 	fn->type = type;
 	darr_append(ctx->fn_arr, ctx->fn_arr_count, fn);
-	return 0;
+	return fn;
+err_null_name:
+	free(fn);
+	ereturn(NULL, "strdup(name)");
 }
 
-int
-mcb_define_func_arg(struct mcb_func_arg *arg,
-		const char *name,
+struct mcb_func_arg *
+mcb_define_func_arg(const char *name,
 		enum MCB_TYPE type,
 		struct mcb_func *fn)
 {
-	if (!arg || !name || !fn)
-		return 1;
-	memset(arg, 0, sizeof(*arg));
+	struct mcb_func_arg *arg;
+	if (!name || !fn)
+		ereturn(NULL, "!name || !fn");
+	arg = ecalloc(1, sizeof(*arg));
 	arg->name = strdup(name);
 	if (!arg->name)
-		return 1;
+		goto err_null_name;
 	arg->type = type;
 	darr_append(fn->args, fn->argc, arg);
-	return 0;
+	return arg;
+err_null_name:
+	free(arg);
+	ereturn(NULL, "strdup(name)");
 }
 
 void

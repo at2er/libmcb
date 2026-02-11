@@ -9,25 +9,24 @@
 #define LIBMCB_STRIP
 #include "label.h"
 
+#include "../../err.h"
 #include "../../str.h"
 
-int
+void
 define_label(struct mcb_label *label,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
+	int len;
 	assert(label && ctx);
 
-	if (!str_clean(&ctx->buf))
-		return 1;
-
-	ctx->buf.len = snprintf(ctx->buf.s, ctx->buf.siz,
+	estr_clean(&ctx->buf);
+	len = snprintf(ctx->buf.s, ctx->buf.siz,
 			".L%s__%s:\n",
 			fn->name,
 			label->name);
-
-	if (!str_append_str(&ctx->text, &ctx->buf))
-		return 1;
-
-	return 0;
+	if (len < 0)
+		eabort("snprintf()");
+	ctx->buf.len = len;
+	estr_append_str(&ctx->text, &ctx->buf);
 }

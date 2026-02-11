@@ -11,13 +11,14 @@
 struct mcb_context;
 
 enum MCB_FUNC_EXPORT_TYPE {
-	MCB_FUNC_EXPORT,
-	MCB_FUNC_LOCAL
+	MCB_EXPORT_FUNC,
+	MCB_LOCAL_FUNC
 };
 
 struct mcb_func_arg {
 	char *name;
 	enum MCB_TYPE type;
+	struct mcb_value *val_link;
 };
 
 struct mcb_func {
@@ -41,13 +42,13 @@ struct mcb_func {
 	void *data;
 };
 
-int mcb_define_func(struct mcb_func *fn,
+struct mcb_func *mcb_define_func(
 		const char *name,
 		enum MCB_TYPE type,
 		enum MCB_FUNC_EXPORT_TYPE export_type,
 		struct mcb_context *ctx);
 
-int mcb_define_func_arg(struct mcb_func_arg *arg,
+struct mcb_func_arg *mcb_define_func_arg(
 		const char *name,
 		enum MCB_TYPE type,
 		struct mcb_func *fn);

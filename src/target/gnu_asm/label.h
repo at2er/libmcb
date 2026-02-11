@@ -11,7 +11,7 @@
 #define define_label mcb__gnu_asm_define_label
 #endif
 
-int mcb__gnu_asm_define_label(struct mcb_label *label,
+void mcb__gnu_asm_define_label(struct mcb_label *label,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx);
 

@@ -3,25 +3,56 @@
 */
 #include <assert.h>
 #include <string.h>
-#include "darr.h"
 #include "mcb/func.h"
 #include "mcb/value.h"
 
-int
-mcb_define_value(struct mcb_value *val,
-		const char *name,
+#include "darr.h"
+#include "ealloc.h"
+#include "err.h"
+
+struct mcb_value *
+mcb_define_value(const char *name,
 		enum MCB_TYPE type,
 		struct mcb_func *fn)
 {
-	if (!val || !name || !fn)
-		return 1;
-	memset(val, 0, sizeof(*val));
+	struct mcb_value *val;
+	if (!name || !fn)
+		ereturn(NULL, "!val || !name || !fn");
+	val = ecalloc(1, sizeof(*val));
+	val->kind = MCB_NORMAL_VALUE;
 	val->name = strdup(name);
 	if (!val->name)
-		return 1;
+		goto err_null_name;
 	val->type = type;
 	darr_append(fn->value_arr, fn->value_arr_count, val);
-	return 0;
+	return val;
+err_null_name:
+	free(val);
+	ereturn(NULL, "strdup(name)");
+}
+
+struct mcb_value *
+mcb_define_value_from_func_arg(
+		const char *name,
+		struct mcb_func_arg *func_arg,
+		struct mcb_func *fn)
+{
+	struct mcb_value *val;
+	if (!name || !func_arg || !fn)
+		ereturn(NULL, "!name || !func_arg || !fn");
+	val = ecalloc(1, sizeof(*val));
+	val->inner.func_arg = func_arg;
+	val->kind = MCB_FUNC_ARG_VALUE;
+	val->name = strdup(name);
+	if (!val->name)
+		goto err_null_name;
+	val->type = func_arg->type;
+	darr_append(fn->value_arr, fn->value_arr_count, val);
+	func_arg->val_link = val;
+	return val;
+err_null_name:
+	free(val);
+	ereturn(NULL, "strdup(name)");
 }
 
 void

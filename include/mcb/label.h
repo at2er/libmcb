@@ -13,7 +13,7 @@ struct mcb_label {
 	struct mcb_inst *beg;
 };
 
-int mcb_define_label(struct mcb_label *l,
+struct mcb_label *mcb_define_label(
 		const char *name,
 		struct mcb_func *fn);
 

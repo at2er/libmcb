@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include "mcb/context.h"
 #include "mcb/func.h"
@@ -8,53 +9,61 @@
 #include "mcb/target/gnu_asm.h"
 #include "mcb/value.h"
 
+#define UTILSH_EALLOC_IMPL
+#include "../src/ealloc.h"
+
+static void define_main_fn(struct mcb_context *ctx);
+static void define_test_fn(struct mcb_context *ctx);
+
+void
+define_main_fn(struct mcb_context *ctx)
+{
+	struct mcb_func *main_fn =
+		mcb_define_func("main", MCB_I32, MCB_EXPORT_FUNC, ctx);
+	struct mcb_func_arg *a0 =
+		mcb_define_func_arg("a0", MCB_I32, main_fn);
+
+	struct mcb_label *entry =
+		mcb_define_label("entry", main_fn);
+	assert(entry);
+
+	struct mcb_value *va0 =
+		mcb_define_value_from_func_arg("va0", a0, main_fn);
+
+	mcb_inst_ret(va0, main_fn);
+}
+
+void
+define_test_fn(struct mcb_context *ctx)
+{
+	struct mcb_func *test_fn =
+		mcb_define_func("test", MCB_I32, MCB_LOCAL_FUNC, ctx);
+	struct mcb_func_arg *a0 =
+		mcb_define_func_arg("a0", MCB_I32, test_fn);
+	assert(a0);
+
+	struct mcb_label *entry =
+		mcb_define_label("entry", test_fn);
+	assert(entry);
+}
+
 int
 main(void)
 {
 	/*
+	 * fn test(%a0: i32): i32
+	 * entry:
+	 * 
+	 *
 	 * fn main(%a0: i32): i32
 	 * entry:
-	 *  RAX       ^ %v0:i32 = store $4 ; but register of %v0 is allocated by div
-	 *  RBX    ^  | %v1:i32 = store $2
-	 *  RDX ^  |  | %v2:i32 = NULL
-	 *      |  #  | %v3:i32 = div %v2, %v0, %v1 <- %v1
-	 *      v  v  | %v4:i32 = div %v2, %v0, %v3 <- %v0, %v2, %v3 ; swap %rax, %rbx
-	 *            v ret %v4                     <- %v4
-	 *
-	 * ==> 1
 	 */
 
 	struct mcb_context ctx;
 	mcb_define_context(&ctx);
 
-	struct mcb_func main_fn;
-	struct mcb_func_arg a0;
-	mcb_define_func(&main_fn, "main", MCB_I32, MCB_FUNC_EXPORT, &ctx);
-	mcb_define_func_arg(&a0, "a0", MCB_I32, &main_fn);
-
-	struct mcb_label entry;
-	mcb_define_label(&entry, "entry", &main_fn);
-
-	struct mcb_value v0;
-	mcb_define_value(&v0, "v0", MCB_I32, &main_fn);
-	mcb_inst_store_int(&v0, 4, &main_fn);
-
-	struct mcb_value v1;
-	mcb_define_value(&v1, "v1", MCB_I32, &main_fn);
-	mcb_inst_store_int(&v1, 2, &main_fn);
-
-	struct mcb_value v2;
-	mcb_define_value(&v2, "v2", MCB_I32, &main_fn);
-
-	struct mcb_value v3;
-	mcb_define_value(&v3, "v3", MCB_I32, &main_fn);
-	mcb_inst_div(&v3, &v2, &v0, &v1, &main_fn);
-
-	struct mcb_value v4;
-	mcb_define_value(&v4, "v4", MCB_I32, &main_fn);
-	mcb_inst_div(&v4, &v2, &v0, &v3, &main_fn);
-
-	mcb_inst_ret(&v4, &main_fn);
+	define_test_fn(&ctx);
+	define_main_fn(&ctx);
 
 	/* output */
 	if (mcb_target_gnu_asm(stdout, &ctx))

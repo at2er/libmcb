@@ -2,6 +2,7 @@
 #ifndef LIBMCB_ERR_H
 #define LIBMCB_ERR_H
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifndef DISABLE_ERR_COLOR
 #define ERR_COLOR(S) "\x1b[31m" S "\x1b[0m"

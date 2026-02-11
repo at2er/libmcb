@@ -3,23 +3,28 @@
 */
 #include <assert.h>
 #include <string.h>
-#include "darr.h"
 #include "mcb/func.h"
 #include "mcb/label.h"
 
-int
-mcb_define_label(struct mcb_label *l,
-		const char *name,
-		struct mcb_func *fn)
+#include "darr.h"
+#include "ealloc.h"
+#include "err.h"
+
+struct mcb_label *
+mcb_define_label(const char *name, struct mcb_func *fn)
 {
-	if (!l || !name || !fn)
-		return 1;
-	memset(l, 0, sizeof(*l));
+	struct mcb_label *l;
+	if (!name || !fn)
+		ereturn(NULL, "!name || !fn");
+	l = ecalloc(1, sizeof(*l));
 	l->name = strdup(name);
 	if (!l->name)
-		return 1;
+		goto err_free_l;
 	darr_append(fn->label_arr, fn->label_arr_count, l);
-	return 0;
+	return l;
+err_free_l:
+	free(l);
+	return NULL;
 }
 
 void
