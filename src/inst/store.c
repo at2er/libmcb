@@ -8,6 +8,8 @@
 #include "mcb/value.h"
 #include "utils.h"
 
+#include "../ealloc.h"
+
 int
 mcb_inst_store_int(struct mcb_value *container,
 		int64_t data,
@@ -16,9 +18,7 @@ mcb_inst_store_int(struct mcb_value *container,
 	struct mcb_inst *inst;
 	if (!container || !fn)
 		return 1;
-	inst = calloc(1, sizeof(*inst));
-	if (!inst)
-		return 1;
+	inst = ecalloc(1, sizeof(*inst));
 	inst->kind = MCB_STORE_INST;
 	inst->inner.store.container = container;
 	inst->inner.store.operand.i = data;

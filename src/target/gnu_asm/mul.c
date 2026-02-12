@@ -165,7 +165,7 @@ build_mul_inst(struct mcb_inst *inst_outer,
 		return 0;
 
 	get_lhs_and_rhs(&lhs_val, &rhs_val, inst);
-	if (((struct gnu_asm_func*)fn->data)->reg_allocated[RAX]) {
+	if (((struct gnu_asm_func*)fn->data)->allocated_reg[RAX]) {
 		if (mov_reg_user(RAX, fn, ctx))
 			eabort("mov_reg_user()");
 		drop_reg(RAX, fn);

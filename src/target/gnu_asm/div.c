@@ -95,9 +95,9 @@ clean_rax(const struct gnu_asm_value *lhs,
 	struct gnu_asm_func *gfn;
 	assert(fn && fn->data);
 	gfn = fn->data;
-	if (!gfn->reg_allocated[RAX])
+	if (!gfn->allocated_reg[RAX])
 		return;
-	if (lhs == gfn->reg_allocated[RAX])
+	if (lhs == gfn->allocated_reg[RAX])
 		return;
 
 	if (mov_reg_user(RAX, fn, ctx))
@@ -114,7 +114,7 @@ clean_rdx(struct gnu_asm_value *rem,
 	enum GNU_ASM_REG r;
 	assert(fn && fn->data);
 	gfn = fn->data;
-	if (!gfn->reg_allocated[RDX])
+	if (!gfn->allocated_reg[RDX])
 		return;
 
 	if (mov_reg_user(RDX, fn, ctx))

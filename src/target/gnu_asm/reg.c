@@ -5,6 +5,8 @@
 #define LIBMCB_STRIP
 #include "func.h"
 #include "reg.h"
+#include "value_kind.h"
+#include "../../err.h"
 #include "../../macros.h"
 
 static const enum GNU_ASM_REG reg_alloc_priority[] = {
@@ -41,20 +43,28 @@ alloc_reg(enum GNU_ASM_REG reg,
 	assert(f);
 
 	if (reg != AUTO_ALLOC_REG) {
-		if (f->reg_allocated[reg])
+		if (f->allocated_reg[reg])
 			return REG_COUNT;
-		f->reg_allocated[reg] = user;
+		f->allocated_reg[reg] = user;
 		return reg;
 	}
 
 	for (unsigned int i = 0; i < LENGTH(reg_alloc_priority); i++) {
-		if (!f->reg_allocated[reg_alloc_priority[i]]) {
-			f->reg_allocated[reg_alloc_priority[i]] = user;
+		if (!f->allocated_reg[reg_alloc_priority[i]]) {
+			f->allocated_reg[reg_alloc_priority[i]] = user;
 			return reg_alloc_priority[i];
 		}
 	}
 
 	return REG_COUNT;
+}
+
+const char *
+cstr_from_reg(enum GNU_ASM_REG r, int siz)
+{
+	if (r >= REG_COUNT)
+		return NULL;
+	return regs[r][siz];
 }
 
 void
@@ -63,18 +73,18 @@ drop_reg(enum GNU_ASM_REG reg, struct mcb_func *fn)
 	struct gnu_asm_func *f;
 	assert(fn);
 	f = fn->data;
-	f->reg_allocated[reg] = false;
+	f->allocated_reg[reg] = false;
 }
 
 int
 reg_offset_from_kind(enum GNU_ASM_VALUE_KIND kind)
 {
 	switch (kind) {
-	case UNKOWN_VALUE:  break;
-	case I8_REG_VALUE:  case I8_IMM_VALUE:  return 3;
-	case I16_REG_VALUE: case I16_IMM_VALUE: return 2;
-	case I32_REG_VALUE: case I32_IMM_VALUE: return 1;
-	case I64_REG_VALUE: case I64_IMM_VALUE: return 0;
+	case UNKOWN_VALUE: return -1;
+	CASE_I8_VALUE:     return 3;
+	CASE_I16_VALUE:    return 2;
+	CASE_I32_VALUE:    return 1;
+	CASE_I64_VALUE:    return 0;
 	}
 	return -1;
 }
@@ -83,11 +93,7 @@ struct str *
 str_from_reg(struct str *s, enum GNU_ASM_REG r, int siz)
 {
 	assert(s);
-	if (!str_empty(s))
-		return NULL;
-	if (r >= REG_COUNT)
-		return NULL;
-	if (!str_from_cstr(s, regs[r][siz]))
-		return NULL;
+	estr_empty(s);
+	estr_from_cstr(s, cstr_from_reg(r, siz));
 	return s;
 }

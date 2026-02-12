@@ -8,6 +8,8 @@
 #include "mcb/value.h"
 #include "utils.h"
 
+#include "../ealloc.h"
+
 int
 mcb_inst_sub(struct mcb_value *result,
 		struct mcb_value *lhs,
@@ -17,9 +19,7 @@ mcb_inst_sub(struct mcb_value *result,
 	struct mcb_inst *inst;
 	if (!result || !lhs || !rhs || !fn)
 		return 1;
-	inst = calloc(1, sizeof(*inst));
-	if (!inst)
-		return 1;
+	inst = ecalloc(1, sizeof(*inst));
 	inst->kind = MCB_SUB_INST;
 	inst->inner.sub.result = result;
 	inst->inner.sub.lhs = lhs;

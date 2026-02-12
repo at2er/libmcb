@@ -3,6 +3,7 @@
 */
 #ifndef LIBMCB_TARGET_GNU_ASM_VALUE_H
 #define LIBMCB_TARGET_GNU_ASM_VALUE_H
+#include "mem.h"
 #include "reg.h"
 #include "value_kind.h"
 
@@ -15,6 +16,7 @@ struct gnu_asm_value {
 	enum GNU_ASM_VALUE_KIND kind;
 	union {
 		union gnu_asm_imm_value imm;
+		struct gnu_asm_mem_obj *mem;
 		enum GNU_ASM_REG reg;
 	} inner;
 };

@@ -5,11 +5,14 @@
 #define LIBMCB_TARGET_GNU_ASM_FUNC_H
 #include <stdbool.h>
 #include "gnu_asm.h"
+#include "mem.h"
 #include "reg.h"
 #include "value.h"
 
 struct gnu_asm_func {
-	struct gnu_asm_value *reg_allocated[REG_COUNT];
+	struct gnu_asm_mem_obj **allocated_mem;
+	int allocated_mem_count;
+	struct gnu_asm_value *allocated_reg[REG_COUNT];
 };
 
 #ifdef LIBMCB_STRIP

@@ -8,6 +8,8 @@
 #include "mcb/value.h"
 #include "utils.h"
 
+#include "../ealloc.h"
+
 int
 mcb_inst_div(struct mcb_value *result,
 		struct mcb_value *rem,
@@ -18,9 +20,7 @@ mcb_inst_div(struct mcb_value *result,
 	struct mcb_inst *inst;
 	if (!result || !lhs || !rhs || !rem || !fn)
 		return 1;
-	inst = calloc(1, sizeof(*inst));
-	if (!inst)
-		return 1;
+	inst = ecalloc(1, sizeof(*inst));
 	inst->kind = MCB_DIV_INST;
 	inst->inner.div.result = result;
 	inst->inner.div.rem = rem;

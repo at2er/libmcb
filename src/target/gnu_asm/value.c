@@ -10,6 +10,7 @@
 #define LIBMCB_STRIP
 #include "reg.h"
 #include "value.h"
+#include "value_kind.h"
 
 #include "../../err.h"
 #include "../../str.h"
@@ -61,11 +62,11 @@ int
 map_value_kind_to_bytes(enum GNU_ASM_VALUE_KIND kind)
 {
 	switch (kind) {
-	case UNKOWN_VALUE:  return -1;
-	case I8_IMM_VALUE:  case I8_REG_VALUE:  return 1;
-	case I16_IMM_VALUE: case I16_REG_VALUE: return 2;
-	case I32_IMM_VALUE: case I32_REG_VALUE: return 4;
-	case I64_IMM_VALUE: case I64_REG_VALUE: return 8;
+	case UNKOWN_VALUE: return -1;
+	CASE_I8_VALUE:     return 1;
+	CASE_I16_VALUE:    return 2;
+	CASE_I32_VALUE:    return 4;
+	CASE_I64_VALUE:    return 8;
 	}
 	return -1;
 }
@@ -103,13 +104,15 @@ str_from_value(struct str *s, const struct gnu_asm_value *v)
 {
 	int reg_off;
 	assert(s && v);
-	if (IS_IMM(v->kind))
-		return str_from_imm(s, v);
-	if (IS_REG(v->kind)) {
+	switch (v->kind) {
+	case UNKOWN_VALUE: return NULL;
+	CASE_IMM_VALUE: return str_from_imm(s, v);
+	CASE_MEM_VALUE: return str_from_mem(s, v);
+	CASE_REG_VALUE:
 		reg_off = reg_offset_from_kind(v->kind);
 		assert(reg_off != -1);
 		return str_from_reg(s, v->inner.reg, reg_off);
 	}
-	eabort("str_from_imm()");
+	eabort("str_from_value()");
 	return NULL;
 }

@@ -7,30 +7,67 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mcb/func.h"
+#include "mcb/inst/call.h"
 
 #define LIBMCB_STRIP
 #include "func.h"
+#include "gen_mov.h"
 #include "gnu_asm.h"
 #include "inst.h"
 #include "label.h"
 #include "reg.h"
+#include "utils.h"
 #include "value.h"
 #include "value_kind.h"
 
+#include "../../darr.h"
 #include "../../ealloc.h"
 #include "../../err.h"
 #include "../../macros.h"
+#include "../../str.h"
 
+struct func_call_context {
+	/* drop them after calling by drop_arg() */
+	int argc;
+	struct gnu_asm_value **args;
+
+	struct mcb_func *callee;
+
+	struct mcb_func *fn;
+	struct mcb_call_inst *inst;
+	struct mcb_inst *inst_outer;
+	struct gnu_asm *ctx;
+};
+
+static void build_call(const struct mcb_func *callee, struct gnu_asm *ctx);
 static bool can_define_label(
 		const struct mcb_func *fn,
 		size_t label_idx,
 		size_t inst_idx);
 static int define_func_begin(struct mcb_func *fn, struct gnu_asm *ctx);
+static void drop_arg(int idx, struct func_call_context *ctx);
 static void init_func_arg_value(int idx, struct mcb_func *fn);
+static void push_arg(int idx, struct func_call_context *ctx);
 
 static const enum GNU_ASM_REG arg_alloc_arr[] = {
 	RDI, RSI, RDX, RCX, R8, R9
 };
+
+void
+build_call(const struct mcb_func *callee, struct gnu_asm *ctx)
+{
+	int len;
+	assert(callee && ctx);
+	assert(callee->name);
+	estr_clean(&ctx->buf);
+	len = snprintf(ctx->buf.s, ctx->buf.siz,
+			"call %s\n",
+			callee->name);
+	if (len < 0)
+		eabort("snprintf()");
+	ctx->buf.len = len;
+	estr_append_str(&ctx->text, &ctx->buf);
+}
 
 bool
 can_define_label(
@@ -83,6 +120,28 @@ define_func_begin(struct mcb_func *fn, struct gnu_asm *ctx)
 }
 
 void
+drop_arg(int idx, struct func_call_context *ctx)
+{
+	struct mcb_value val;
+	assert(ctx);
+	assert(ctx->fn);
+
+	if (ctx->argc == 0 && ctx->args == NULL) {
+		assert(ctx->callee->argc == 0);
+		return;
+	}
+
+	val.data = ctx->args[idx];
+	assert(val.data);
+
+	/* drop_value() ignore content in mcb_value other than val.data */
+	drop_value(&val, ctx->fn);
+
+	ctx->args[idx] = NULL;
+	free(val.data);
+}
+
+void
 init_func_arg_value(int idx, struct mcb_func *fn)
 {
 	struct gnu_asm_value *gval;
@@ -105,6 +164,44 @@ init_func_arg_value(int idx, struct mcb_func *fn)
 		eabort("alloc_reg()");
 }
 
+void
+push_arg(int idx, struct func_call_context *ctx)
+{
+	struct gnu_asm_value *arg;
+	const struct gnu_asm_value *val;
+	assert(ctx);
+	assert(ctx->fn && ctx->inst && ctx->ctx);
+	assert(ctx->inst->args);
+	assert(ctx->inst->args[idx]);
+	val = ctx->inst->args[idx]->data;
+	assert(val);
+
+	if (idx > (int)LENGTH(arg_alloc_arr))
+		eabort("unsupport: idx > LENGTH(arg_alloc_arr)");
+
+	if (IS_REG(val->kind) && val->inner.reg == arg_alloc_arr[idx])
+		return;
+
+	arg = ecalloc(1, sizeof(*arg));
+	arg->kind = remap_value_kind(I8_REG_VALUE, val->kind);
+	arg->inner.reg = alloc_reg(arg_alloc_arr[idx], arg, ctx->fn);
+	if (arg->inner.reg == REG_COUNT) {
+		if (mov_reg_user_to_mem(arg_alloc_arr[idx], ctx->fn, ctx->ctx))
+			eabort("mov_reg_user_to_mem()");
+		drop_reg(arg_alloc_arr[idx], ctx->fn);
+		arg->inner.reg = alloc_reg(arg_alloc_arr[idx], arg, ctx->fn);
+		if (arg->inner.reg == REG_COUNT)
+			eabort("alloc_reg()");
+	}
+
+	estr_clean(&ctx->ctx->buf);
+	if (gen_mov(&ctx->ctx->buf, arg, val))
+		return;
+	estr_append_str(&ctx->ctx->text, &ctx->ctx->buf);
+
+	darr_append(ctx->args, ctx->argc, arg);
+}
+
 int
 define_func(struct mcb_func *fn, struct gnu_asm *ctx)
 {
@@ -121,5 +218,45 @@ define_func(struct mcb_func *fn, struct gnu_asm *ctx)
 		if (build_inst(fn->inst_arr[i], fn, ctx))
 			return 1;
 	}
+	return 0;
+}
+
+int
+build_call_inst(struct mcb_inst *inst_outer,
+		struct mcb_func *fn,
+		struct gnu_asm *ctx)
+{
+	struct func_call_context call_ctx = {0};
+	struct mcb_call_inst *inst;
+	struct gnu_asm_value *result;
+	assert(inst_outer && fn && ctx);
+	inst = &inst_outer->inner.call;
+	assert(inst);
+	if (inst->result->scope_end == inst_outer)
+		return 0;
+
+	assert(inst->callee);
+
+	call_ctx.fn = fn;
+	call_ctx.inst = inst;
+	call_ctx.inst_outer = inst_outer;
+	call_ctx.ctx = ctx;
+
+	result = inst->result->data = ecalloc(1, sizeof(*result));
+	result->kind = map_type_to_value_kind(I8_REG_VALUE, inst->result->type);
+	result->inner.reg = alloc_reg(RAX, result, fn);
+	if (result->inner.reg == REG_COUNT) {
+		if (mov_reg_user(RAX, fn, ctx))
+			ereturn(1, "mov_reg_user()");
+	}
+
+	for (int i = 0; i < inst->callee->argc; i++)
+		push_arg(i, &call_ctx);
+
+	build_call(inst->callee, ctx);
+
+	for (int i = 0; i < call_ctx.argc; i++)
+		drop_arg(i, &call_ctx);
+
 	return 0;
 }

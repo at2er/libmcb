@@ -8,15 +8,15 @@
 #include "mcb/value.h"
 #include "utils.h"
 
+#include "../ealloc.h"
+
 int
 mcb_inst_ret(struct mcb_value *val, struct mcb_func *fn)
 {
 	struct mcb_inst *inst;
 	if (!val || !fn)
 		return 1;
-	inst = calloc(1, sizeof(*inst));
-	if (!inst)
-		return 1;
+	inst = ecalloc(1, sizeof(*inst));
 	inst->kind = MCB_RET_INST;
 	inst->inner.ret.val = val;
 	if (mcb_use_value(inst, val))

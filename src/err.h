@@ -38,7 +38,7 @@
 
 #define ereturnf(VALUE, MSG_FMT, ...) \
 	do { \
-		eprintf(MSG_FMT __VA_ARGS__); \
+		eprintf(MSG_FMT, __VA_ARGS__); \
 		return VALUE; \
 	} while (0);
 

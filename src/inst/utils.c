@@ -5,8 +5,11 @@
 #include "mcb/func.h"
 #include "mcb/inst.h"
 #include "mcb/label.h"
+
 #include "utils.h"
+
 #include "../darr.h"
+#include "../err.h"
 
 int
 mcb_append_inst(struct mcb_inst *inst, struct mcb_func *fn)
@@ -26,7 +29,7 @@ int
 mcb_use_value(struct mcb_inst *inst, struct mcb_value *value)
 {
 	if (!inst || !value)
-		return 1;
+		ereturn(1, "!inst || !value");
 	value->scope_end = inst;
 	return 0;
 }
