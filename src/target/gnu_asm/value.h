@@ -3,6 +3,8 @@
 */
 #ifndef LIBMCB_TARGET_GNU_ASM_VALUE_H
 #define LIBMCB_TARGET_GNU_ASM_VALUE_H
+#include <stdint.h>
+#include "mcb/inst/cmp.h"
 #include "mem.h"
 #include "reg.h"
 #include "value_kind.h"
@@ -17,6 +19,7 @@ struct gnu_asm_value {
 	union {
 		union gnu_asm_imm_value imm;
 		struct gnu_asm_mem_obj *mem;
+		enum MCB_CMP_OPERATOR operator;
 		enum GNU_ASM_REG reg;
 	} inner;
 };

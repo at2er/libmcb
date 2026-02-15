@@ -3,9 +3,9 @@
 */
 #ifndef LIBMCB_LABEL_H
 #define LIBMCB_LABEL_H
-#include "mcb/inst.h"
 
 struct mcb_func;
+struct mcb_inst;
 
 struct mcb_label {
 	char *name;
@@ -13,9 +13,9 @@ struct mcb_label {
 	struct mcb_inst *beg;
 };
 
-struct mcb_label *mcb_define_label(
-		const char *name,
-		struct mcb_func *fn);
+int mcb_append_label(struct mcb_label *label, struct mcb_func *fn);
+
+struct mcb_label *mcb_define_label(const char *name);
 
 void mcb_destory_label(struct mcb_label *l);
 

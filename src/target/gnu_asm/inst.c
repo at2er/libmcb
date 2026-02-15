@@ -2,8 +2,11 @@
    SPDX-License-Identifier: LGPL-3.0-or-later
 */
 #include <assert.h>
+
 #define LIBMCB_STRIP
 #include "inst.h"
+
+#include "../../err.h"
 
 int
 build_inst(struct mcb_inst *inst,
@@ -15,6 +18,7 @@ build_inst(struct mcb_inst *inst,
 	switch (inst->kind) {
 	case MCB_ADD_INST:   return build_add_inst(inst, fn, ctx);
 	case MCB_CALL_INST:  return build_call_inst(inst, fn, ctx);
+	case MCB_CMP_INST:   return build_cmp_inst(inst, fn, ctx);
 	case MCB_DIV_INST:   return build_div_inst(inst, fn, ctx);
 	case MCB_MUL_INST:   return build_mul_inst(inst, fn, ctx);
 	case MCB_RET_INST:   return build_ret_inst(inst, fn, ctx);
@@ -32,14 +36,13 @@ get_inst_suffix(enum GNU_ASM_VALUE_KIND dst_kind)
 	switch (dst_kind) {
 	case UNKOWN_VALUE:
 		return '\0';
-	case I8_IMM_VALUE:  case I8_MEM_VALUE:  case I8_REG_VALUE:
-		return 'l';
-	case I16_IMM_VALUE: case I16_MEM_VALUE: case I16_REG_VALUE:
-		return 'l';
-	case I32_IMM_VALUE: case I32_MEM_VALUE: case I32_REG_VALUE:
-		return 'l';
-	case I64_IMM_VALUE: case I64_MEM_VALUE: case I64_REG_VALUE:
-		return 'q';
+	CASE_I8_VALUE:  return 'l';
+	CASE_I16_VALUE: return 'l';
+	CASE_I32_VALUE: return 'l';
+	CASE_I64_VALUE: return 'q';
+	case CMP_RESULT_VALUE:
+		eabort("unexpected dst_kind 'CMP_RESULT_VALUE'");
+		break;
 	}
 	return '\0';
 }
