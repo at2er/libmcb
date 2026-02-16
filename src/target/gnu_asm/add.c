@@ -6,16 +6,36 @@
 #include <stdlib.h>
 #include "mcb/func.h"
 #include "mcb/inst.h"
+#include "mcb/inst/add.h"
 #include "mcb/value.h"
 
 #define LIBMCB_STRIP
 #include "gen_mov.h"
 #include "gnu_asm.h"
 #include "inst.h"
+#include "reg.h"
 #include "value.h"
 
 #include "../../ealloc.h"
+#include "../../err.h"
 #include "../../str.h"
+
+static void mov_to_result(
+		struct gnu_asm_value *result,
+		struct gnu_asm_value *dst,
+		struct gnu_asm *ctx);
+
+void
+mov_to_result(struct gnu_asm_value *result,
+		struct gnu_asm_value *dst,
+		struct gnu_asm *ctx)
+{
+	assert(result && dst && ctx);
+	estr_clean(&ctx->buf);
+	if (gen_mov(&ctx->buf, result, dst))
+		eabort("gen_mov()");
+	estr_append_str(&ctx->text, &ctx->buf);
+}
 
 int
 build_add_inst(struct mcb_inst *inst_outer,
@@ -25,6 +45,7 @@ build_add_inst(struct mcb_inst *inst_outer,
 	struct str dst, src;
 	struct mcb_add_inst *inst;
 	struct gnu_asm_value *lhs_val, *rhs_val, *result, *tmp;
+	int len;
 
 	assert(inst_outer && fn && ctx);
 	inst = &inst_outer->inner.add;
@@ -44,7 +65,7 @@ build_add_inst(struct mcb_inst *inst_outer,
 			inst->result->type);
 	result->inner.reg = alloc_reg(AUTO_ALLOC_REG, result, fn);
 	if (result->inner.reg == REG_COUNT)
-		return 1;
+		eabort("alloc_reg()");
 	inst->result->data = result;
 
 	if (IS_REG(rhs_val->kind) && !IS_REG(lhs_val->kind)
@@ -54,33 +75,27 @@ build_add_inst(struct mcb_inst *inst_outer,
 		rhs_val = tmp;
 	}
 
-	if (IS_REG(lhs_val->kind)) {
-		if (inst->lhs->scope_end == inst_outer) {
-			drop_reg(result->inner.reg, fn);
-			free(result);
-			result = lhs_val;
-			inst->lhs->data = NULL;
-			inst->result->data = result;
-		}
-		str_from_value(&dst, lhs_val);
-	} else if (IS_IMM(lhs_val->kind)) {
-		estr_clean(&ctx->buf);
-		if (gen_mov(&ctx->buf, result, lhs_val))
-			return 1;
-		estr_append_str(&ctx->text, &ctx->buf);
-			return 1;
-		str_from_value(&dst, result);
+	if (IS_REG(lhs_val->kind) && inst->lhs->scope_end == inst_outer) {
+		drop_reg(result->inner.reg, fn);
+		free(result);
+		result = lhs_val;
+		inst->lhs->data = NULL;
+		inst->result->data = result;
 	}
 
+	mov_to_result(result, lhs_val, ctx);
+	str_from_value(&dst, result);
 	str_from_value(&src, rhs_val);
 
 	estr_clean(&ctx->buf);
 
-	ctx->buf.len = snprintf(ctx->buf.s, ctx->buf.siz,
+	len = snprintf(ctx->buf.s, ctx->buf.siz,
 			"add%c %s, %s\n",
 			get_inst_suffix(lhs_val->kind),
 			src.s, dst.s);
-
+	if (len < 0)
+		eabort("snprintf()");
+	ctx->buf.len = len;
 	estr_append_str(&ctx->text, &ctx->buf);
 
 	str_free(&dst);

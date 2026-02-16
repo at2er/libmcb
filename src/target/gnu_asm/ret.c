@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "mcb/func.h"
 #include "mcb/inst.h"
+#include "mcb/inst/ret.h"
 #include "mcb/value.h"
 
 #define LIBMCB_STRIP
@@ -14,6 +15,7 @@
 #include "inst.h"
 #include "value.h"
 
+#include "../../err.h"
 #include "../../str.h"
 
 int
@@ -33,19 +35,12 @@ build_ret_inst(struct mcb_inst *inst_outer,
 			inst->val->type);
 	dst.inner.reg = RAX;
 
-	if (IS_REG(src->kind) && src->inner.reg == dst.inner.reg)
-		goto gen_ret;
-
-	if (!str_clean(&ctx->buf))
-		return 1;
+	estr_clean(&ctx->buf);
 	if (gen_mov(&ctx->buf, &dst, src))
-		return 1;
-	if (!str_append_str(&ctx->text, &ctx->buf))
-		return 1;
+		eabort("gen_mov()");
+	estr_append_str(&ctx->text, &ctx->buf);
 
-gen_ret:
-	if (!str_append_cstr(&ctx->text, "ret\n"))
-		return 1;
+	estr_append_cstr(&ctx->text, "leave\nret\n");
 
 	return 0;
 }

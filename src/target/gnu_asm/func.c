@@ -104,7 +104,9 @@ define_func_begin(struct mcb_func *fn, struct gnu_asm *ctx)
 	ctx->buf.len += snprintf(
 			&ctx->buf.s[ctx->buf.len],
 			ctx->buf.siz - ctx->buf.len,
-			"%s:\n", fn->name);
+			"%s:\n"
+			"pushq %%rbp\n"
+			"movq %%rsp, %%rbp\n", fn->name);
 
 	if (!str_append_str(&ctx->text, &ctx->buf))
 		return 1;
@@ -248,6 +250,10 @@ build_call_inst(struct mcb_inst *inst_outer,
 	if (result->inner.reg == REG_COUNT) {
 		if (mov_reg_user(RAX, fn, ctx))
 			ereturn(1, "mov_reg_user()");
+		drop_reg(RAX, fn);
+		result->inner.reg = alloc_reg(RAX, result, fn);
+		if (result->inner.reg == REG_COUNT)
+			eabort("alloc_reg()");
 	}
 
 	for (int i = 0; i < inst->callee->argc; i++)

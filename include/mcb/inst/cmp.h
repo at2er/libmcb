@@ -7,6 +7,7 @@
 #include "mcb/value.h"
 
 enum MCB_CMP_OPERATOR {
+	MCB_GT,
 	MCB_LE
 };
 

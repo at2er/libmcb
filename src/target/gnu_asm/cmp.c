@@ -10,6 +10,7 @@
 #include "mcb/value.h"
 
 #define LIBMCB_STRIP
+#include "cmp.h"
 #include "gen_mov.h"
 #include "gnu_asm.h"
 #include "inst.h"
@@ -82,6 +83,7 @@ build_cmp_inst(struct mcb_inst *inst_outer,
 
 	result = inst->result->data = ecalloc(1, sizeof(*result));
 	result->kind = CMP_RESULT_VALUE;
+	result->inner.operator = inst->operator;
 
 	build_lhs(&lhs_str, lhs, fn, ctx);
 	build_rhs(&rhs_str, rhs, fn, ctx);
@@ -101,4 +103,15 @@ build_cmp_inst(struct mcb_inst *inst_outer,
 		drop_value(inst->rhs, fn);
 
 	return 0;
+}
+
+enum MCB_CMP_OPERATOR
+reverse_cmp_op(enum MCB_CMP_OPERATOR op)
+{
+	switch (op) {
+	case MCB_GT: return MCB_LE;
+	case MCB_LE: return MCB_GT;
+	}
+	eabort("reverse_cmp_op(): location that must not be reached");
+	return -1;
 }

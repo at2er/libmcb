@@ -2,10 +2,13 @@
 #include <stdio.h>
 #include "mcb/context.h"
 #include "mcb/func.h"
+#include "mcb/inst/add.h"
+#include "mcb/inst/branch.h"
 #include "mcb/inst/call.h"
 #include "mcb/inst/cmp.h"
 #include "mcb/inst/ret.h"
 #include "mcb/inst/store.h"
+#include "mcb/inst/sub.h"
 #include "mcb/label.h"
 #include "mcb/target/gnu_asm.h"
 #include "mcb/value.h"
@@ -61,35 +64,35 @@ define_fib_fn(struct mcb_context *ctx)
 		mcb_define_label("if_va0_le_v0");
 	struct mcb_label *if_va0_le_v0_end =
 		mcb_define_label("if_va0_le_v0_end");
-	// mcb_inst_branch(vcmpr0, if_va0_le_v0, if_va0_le_v0_end, fib_fn);
+	mcb_inst_branch(vcmpr0, if_va0_le_v0, if_va0_le_v0_end, fib_fn);
 	mcb_append_label(if_va0_le_v0, fib_fn);
 	mcb_inst_ret(va0, fib_fn);
 	mcb_append_label(if_va0_le_v0_end, fib_fn);
 
-	// struct mcb_value *v1 =
-	// 	mcb_define_value("v1", MCB_I32, fib_fn);
-	// mcb_inst_store_int(v1, 1, fib_fn);
-	// struct mcb_value *v2 =
-	// 	mcb_define_value("v2", MCB_I32, fib_fn);
-	// mcb_inst_sub(v2, va0, v1, fib_fn);
-	// struct mcb_value *vcall0 =
-	// 	mcb_define_value("vcall0", MCB_I32, fib_fn);
-	// mcb_inst_va_call(vcall0, fib_fn, fib_fn, v2);
-	//
-	// struct mcb_value *v3 =
-	// 	mcb_define_value("v3", MCB_I32, fib_fn);
-	// mcb_inst_store_int(v3, 2, fib_fn);
-	// struct mcb_value *v4 =
-	// 	mcb_define_value("v4", MCB_I32, fib_fn);
-	// mcb_inst_sub(v4, va0, v3, fib_fn);
-	// struct mcb_value *vcall1 =
-	// 	mcb_define_value("vcall1", MCB_I32, fib_fn);
-	// mcb_inst_va_call(vcall1, fib_fn, fib_fn, v4);
-	//
-	// struct mcb_value *v5 =
-	// 	mcb_define_value("v5", MCB_I32, fib_fn);
-	// mcb_inst_add(v5, vcall0, vcall1, fib_fn);
-	// mcb_inst_ret(v5);
+	struct mcb_value *v1 =
+		mcb_define_value("v1", MCB_I32, fib_fn);
+	mcb_inst_store_int(v1, 1, fib_fn);
+	struct mcb_value *v2 =
+		mcb_define_value("v2", MCB_I32, fib_fn);
+	mcb_inst_sub(v2, va0, v1, fib_fn);
+	struct mcb_value *vcall0 =
+		mcb_define_value("vcall0", MCB_I32, fib_fn);
+	mcb_inst_va_call(vcall0, fib_fn, fib_fn, v2);
+	
+	struct mcb_value *v3 =
+		mcb_define_value("v3", MCB_I32, fib_fn);
+	mcb_inst_store_int(v3, 2, fib_fn);
+	struct mcb_value *v4 =
+		mcb_define_value("v4", MCB_I32, fib_fn);
+	mcb_inst_sub(v4, va0, v3, fib_fn);
+	struct mcb_value *vcall1 =
+		mcb_define_value("vcall1", MCB_I32, fib_fn);
+	mcb_inst_va_call(vcall1, fib_fn, fib_fn, v4);
+	
+	struct mcb_value *v5 =
+		mcb_define_value("v5", MCB_I32, fib_fn);
+	mcb_inst_add(v5, vcall0, vcall1, fib_fn);
+	mcb_inst_ret(v5, fib_fn);
 	return fib_fn;
 }
 
@@ -136,9 +139,14 @@ main(void)
 	struct mcb_func *fib_fn = define_fib_fn(&ctx);
 	define_main_fn(fib_fn, &ctx);
 
+	FILE *fp = fopen("/tmp/libmcb_out.s", "w");
+
 	/* output */
-	if (mcb_target_gnu_asm(stdout, &ctx))
+	if (mcb_target_gnu_asm(fp, &ctx))
 		return 1;
+
+	fclose(fp);
+
 	mcb_destory_context(&ctx);
 	return 0;
 }

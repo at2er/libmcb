@@ -9,10 +9,16 @@
 
 #ifdef LIBMCB_STRIP
 #define define_label mcb__gnu_asm_define_label
+#define unwarp_label mcb__gnu_asm_unwarp_label
 #endif
 
-void mcb__gnu_asm_define_label(struct mcb_label *label,
+void mcb__gnu_asm_define_label(
+		struct mcb_label *label,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx);
+
+char *mcb__gnu_asm_unwarp_label(
+		struct mcb_label *label,
+		struct mcb_func *fn);
 
 #endif
