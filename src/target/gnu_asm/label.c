@@ -13,12 +13,14 @@
 
 #include "../../err.h"
 #include "../../str.h"
+#include "../../text_block.h"
 
 void
 define_label(struct mcb_label *label,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	char *unwarped_label = NULL;
 	assert(label && ctx);
 
@@ -26,8 +28,9 @@ define_label(struct mcb_label *label,
 	unwarped_label = unwarp_label(label, fn);
 	if (!unwarped_label)
 		eabort("unwarp_label()");
-	estr_append_cstr(&ctx->text, unwarped_label);
-	estr_append_cstr(&ctx->text, ":\n");
+	blk = text_block_from_cstr(unwarped_label);
+	estr_append_cstr(&blk->s, ":\n");
+	append_text_block(&ctx->text, blk);
 	free(unwarped_label);
 }
 

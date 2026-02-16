@@ -20,6 +20,7 @@
 #include "../../ealloc.h"
 #include "../../err.h"
 #include "../../str.h"
+#include "../../text_block.h"
 
 static void build_lhs(struct gnu_asm_value *result,
 		const struct gnu_asm_value *val,
@@ -50,6 +51,7 @@ build_lhs(struct gnu_asm_value *result,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	assert(result && val && fn && ctx);
 
 	if (!need_mov_to_rax(val))
@@ -58,7 +60,8 @@ build_lhs(struct gnu_asm_value *result,
 	estr_clean(&ctx->buf);
 	if (gen_mov(&ctx->buf, result, val))
 		eabort("gen_mov()");
-	estr_append_str(&ctx->text, &ctx->buf);
+	blk = text_block_from_str(&ctx->buf);
+	append_text_block(&ctx->text, blk);
 }
 
 void
@@ -67,6 +70,7 @@ build_rhs(struct str *src,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	struct gnu_asm_value tmp;
 	assert(src && val && fn && ctx);
 
@@ -78,7 +82,8 @@ build_rhs(struct str *src,
 		estr_clean(&ctx->buf);
 		if (gen_mov(&ctx->buf, &tmp, val))
 			eabort("gen_mov()");
-		estr_append_str(&ctx->text, &ctx->buf);
+		blk = text_block_from_str(&ctx->buf);
+		append_text_block(&ctx->text, blk);
 		str_from_value(src, &tmp);
 		drop_reg(tmp.inner.reg, fn);
 	} else if (IS_REG(val->kind)) {
@@ -152,6 +157,7 @@ build_mul_inst(struct mcb_inst *inst_outer,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	struct mcb_mul_inst *inst;
 	int len;
 	struct gnu_asm_value *lhs_val, *rhs_val, *result;
@@ -186,7 +192,8 @@ build_mul_inst(struct mcb_inst *inst_outer,
 	if (len < 0)
 		return 1;
 	ctx->buf.len = len;
-	estr_append_str(&ctx->text, &ctx->buf);
+	blk = text_block_from_str(&ctx->buf);
+	append_text_block(&ctx->text, blk);
 
 	if (inst->lhs->scope_end == inst_outer)
 		drop_value(inst->lhs, fn);

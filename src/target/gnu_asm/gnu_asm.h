@@ -5,13 +5,15 @@
 #define LIBMCB_SRC_TARGET_GNU_ASM_H
 #include <stdio.h>
 #include "mcb/context.h"
+
 #include "../../str.h"
+#include "../../text_block.h"
 
 struct gnu_asm {
 	struct str buf;
 	struct mcb_context *ctx;
 	FILE *stream;
-	struct str text;
+	struct text_block_root text;
 };
 
 #endif

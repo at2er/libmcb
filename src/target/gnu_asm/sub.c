@@ -19,6 +19,7 @@
 #include "../../ealloc.h"
 #include "../../err.h"
 #include "../../str.h"
+#include "../../text_block.h"
 
 static void mov_to_result(
 		struct gnu_asm_value *result,
@@ -30,11 +31,13 @@ mov_to_result(struct gnu_asm_value *result,
 		struct gnu_asm_value *dst,
 		struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	assert(result && dst && ctx);
 	estr_clean(&ctx->buf);
 	if (gen_mov(&ctx->buf, result, dst))
 		eabort("gen_mov()");
-	estr_append_str(&ctx->text, &ctx->buf);
+	blk = text_block_from_str(&ctx->buf);
+	append_text_block(&ctx->text, blk);
 }
 
 int
@@ -42,6 +45,7 @@ build_sub_inst(struct mcb_inst *inst_outer,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	struct str dst, src;
 	struct mcb_sub_inst *inst;
 	struct gnu_asm_value *lhs_val, *rhs_val, *result;
@@ -88,7 +92,8 @@ build_sub_inst(struct mcb_inst *inst_outer,
 	if (len < 0)
 		eabort("snprintf()");
 	ctx->buf.len = len;
-	estr_append_str(&ctx->text, &ctx->buf);
+	blk = text_block_from_str(&ctx->buf);
+	append_text_block(&ctx->text, blk);
 
 	str_free(&dst);
 	str_free(&src);

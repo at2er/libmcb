@@ -14,10 +14,12 @@
 
 #include "../../err.h"
 #include "../../str.h"
+#include "../../text_block.h"
 
 int
 mov_reg_user(enum GNU_ASM_REG reg, struct mcb_func *fn, struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	struct gnu_asm_func *f;
 	struct gnu_asm_value src;
 	struct gnu_asm_value *user;
@@ -34,12 +36,11 @@ mov_reg_user(enum GNU_ASM_REG reg, struct mcb_func *fn, struct gnu_asm *ctx)
 	if (user->inner.reg == REG_COUNT)
 		return mov_reg_user_to_mem(reg, fn, ctx);
 
-	if (!str_clean(&ctx->buf))
-		ereturn(1, "str_clean(&ctx->buf)");
+	estr_clean(&ctx->buf);
 	if (gen_mov(&ctx->buf, user, &src))
 		ereturn(1, "gen_mov()");
-	if (!str_append_str(&ctx->text, &ctx->buf))
-		ereturn(1, "str_append_str()");
+	blk = text_block_from_str(&ctx->buf);
+	append_text_block(&ctx->text, blk);
 
 	return 0;
 }
@@ -50,6 +51,7 @@ mov_reg_user_to_mem(
 		struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	struct gnu_asm_func *f;
 	struct gnu_asm_value src;
 	struct gnu_asm_value *user;
@@ -69,7 +71,8 @@ mov_reg_user_to_mem(
 	estr_clean(&ctx->buf);
 	if (gen_mov(&ctx->buf, user, &src))
 		ereturn(1, "gen_mov()");
-	estr_append_str(&ctx->text, &ctx->buf);
+	blk = text_block_from_str(&ctx->buf);
+	append_text_block(&ctx->text, blk);
 
 	return 0;
 }

@@ -47,6 +47,7 @@ build_rhs(struct str *str,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	struct gnu_asm_value tmp;
 	assert(str && val && fn && ctx);
 
@@ -57,7 +58,8 @@ build_rhs(struct str *str,
 		val->inner.reg = alloc_reg(AUTO_ALLOC_REG, val, fn);
 		if (gen_mov(&ctx->buf, val, &tmp))
 			eabort("gen_mov()");
-		estr_append_str(&ctx->text, &ctx->buf);
+		blk = text_block_from_str(&ctx->buf);
+		append_text_block(&ctx->text, blk);
 	}
 	str_from_value(str, val);
 }
@@ -67,6 +69,7 @@ build_cmp_inst(struct mcb_inst *inst_outer,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	struct mcb_cmp_inst *inst;
 	int len;
 	struct str lhs_str, rhs_str;
@@ -95,7 +98,8 @@ build_cmp_inst(struct mcb_inst *inst_outer,
 	if (len < 0)
 		ereturn(1, "snprintf()");
 	ctx->buf.len = len;
-	estr_append_str(&ctx->text, &ctx->buf);
+	blk = text_block_from_str(&ctx->buf);
+	append_text_block(&ctx->text, blk);
 
 	if (inst->lhs->scope_end == inst_outer)
 		drop_value(inst->lhs, fn);

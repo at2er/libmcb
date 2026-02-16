@@ -17,12 +17,14 @@
 
 #include "../../err.h"
 #include "../../str.h"
+#include "../../text_block.h"
 
 int
 build_ret_inst(struct mcb_inst *inst_outer,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	struct gnu_asm_value dst, *src;
 	struct mcb_ret_inst *inst = &inst_outer->inner.ret;
 	assert(inst && fn && ctx);
@@ -38,9 +40,10 @@ build_ret_inst(struct mcb_inst *inst_outer,
 	estr_clean(&ctx->buf);
 	if (gen_mov(&ctx->buf, &dst, src))
 		eabort("gen_mov()");
-	estr_append_str(&ctx->text, &ctx->buf);
+	blk = text_block_from_str(&ctx->buf);
+	append_text_block(&ctx->text, blk);
 
-	estr_append_cstr(&ctx->text, "leave\nret\n");
+	estr_append_cstr(&blk->s, "leave\nret\n");
 
 	return 0;
 }

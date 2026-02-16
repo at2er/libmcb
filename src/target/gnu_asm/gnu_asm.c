@@ -18,23 +18,24 @@
 #include "value.h"
 
 #include "../../str.h"
+#include "../../text_block.h"
 #include "../../macros.h"
 
 int
 mcb_target_gnu_asm(FILE *stream, struct mcb_context *ctx)
 {
+	struct text_block *blk;
 	struct gnu_asm gnu_asm_ctx = {0};
 	int ret = 0;
 
 	if (!stream || !ctx)
 		return 1;
 
-	if (!str_from_cstr(&gnu_asm_ctx.text, ".text\n"))
-		return 1;
-	if (!str_empty(&gnu_asm_ctx.buf))
-		return 1;
-	if (!str_expand_siz(&gnu_asm_ctx.buf, 8192))
-		return 1;
+	blk = text_block_from_cstr(".text\n");
+	append_text_block(&gnu_asm_ctx.text, blk);
+
+	estr_empty(&gnu_asm_ctx.buf);
+	estr_expand_siz(&gnu_asm_ctx.buf, 8192);
 	gnu_asm_ctx.ctx = ctx;
 	gnu_asm_ctx.stream = stream;
 
@@ -44,7 +45,12 @@ mcb_target_gnu_asm(FILE *stream, struct mcb_context *ctx)
 			return 1;
 	}
 
-	fputs(gnu_asm_ctx.text.s, stream);
+	text_block_for_each(cur, gnu_asm_ctx.text.beg) {
+		if (cur->s.s)
+			fwrite(cur->s.s, sizeof(*cur->s.s), cur->s.siz, stream);
+		destory_text_block(cur);
+	}
+	fflush(stream);
 
 	return 0;
 }

@@ -25,6 +25,7 @@
 #include "../../err.h"
 #include "../../macros.h"
 #include "../../str.h"
+#include "../../text_block.h"
 
 struct func_call_context {
 	/* drop them after calling by drop_arg() */
@@ -56,6 +57,7 @@ static const enum GNU_ASM_REG arg_alloc_arr[] = {
 void
 build_call(const struct mcb_func *callee, struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	int len;
 	assert(callee && ctx);
 	assert(callee->name);
@@ -66,7 +68,8 @@ build_call(const struct mcb_func *callee, struct gnu_asm *ctx)
 	if (len < 0)
 		eabort("snprintf()");
 	ctx->buf.len = len;
-	estr_append_str(&ctx->text, &ctx->buf);
+	blk = text_block_from_str(&ctx->buf);
+	append_text_block(&ctx->text, blk);
 }
 
 bool
@@ -87,6 +90,7 @@ can_define_label(
 int
 define_func_begin(struct mcb_func *fn, struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	struct gnu_asm_func *f;
 	assert(fn && ctx);
 
@@ -108,8 +112,8 @@ define_func_begin(struct mcb_func *fn, struct gnu_asm *ctx)
 			"pushq %%rbp\n"
 			"movq %%rsp, %%rbp\n", fn->name);
 
-	if (!str_append_str(&ctx->text, &ctx->buf))
-		return 1;
+	blk = text_block_from_str(&ctx->buf);
+	append_text_block(&ctx->text, blk);
 
 	/* alloc func->args[*]->val_link->data */
 	if (fn->argc && !fn->args)
@@ -170,6 +174,7 @@ void
 push_arg(int idx, struct func_call_context *ctx)
 {
 	struct gnu_asm_value *arg;
+	struct text_block *blk;
 	const struct gnu_asm_value *val;
 	assert(ctx);
 	assert(ctx->fn && ctx->inst && ctx->ctx);
@@ -199,7 +204,8 @@ push_arg(int idx, struct func_call_context *ctx)
 	estr_clean(&ctx->ctx->buf);
 	if (gen_mov(&ctx->ctx->buf, arg, val))
 		return;
-	estr_append_str(&ctx->ctx->text, &ctx->ctx->buf);
+	blk = text_block_from_str(&ctx->ctx->buf);
+	append_text_block(&ctx->ctx->text, blk);
 
 	darr_append(ctx->args, ctx->argc, arg);
 }

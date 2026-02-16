@@ -21,6 +21,7 @@
 #include "../../ealloc.h"
 #include "../../err.h"
 #include "../../str.h"
+#include "../../text_block.h"
 
 static const char *jcc_template[] = {
 	[MCB_GT] = "jg %s\n",
@@ -32,6 +33,7 @@ build_branch_inst(struct mcb_inst *inst_outer,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
+	struct text_block *blk;
 	struct gnu_asm_value *cmp_result;
 	struct mcb_branch_inst *inst;
 	int len;
@@ -60,7 +62,8 @@ build_branch_inst(struct mcb_inst *inst_outer,
 	if (len < 0)
 		return 1;
 	ctx->buf.len = len;
-	estr_append_str(&ctx->text, &ctx->buf);
+	blk = text_block_from_str(&ctx->buf);
+	append_text_block(&ctx->text, blk);
 
 	return 0;
 }
