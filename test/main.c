@@ -115,10 +115,6 @@ define_main_fn(struct mcb_func *fib_fn, struct mcb_context *ctx)
 		mcb_define_label("entry");
 	mcb_append_label(entry, main_fn);
 
-	struct mcb_value *va0 =
-		mcb_define_value_from_func_arg("va0", a0, fib_fn);
-	assert(va0);
-
 	struct mcb_value *v0 =
 		mcb_define_value("v0", MCB_I32, main_fn);
 	mcb_inst_store_int(v0, 1, main_fn);

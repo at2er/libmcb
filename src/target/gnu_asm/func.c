@@ -40,12 +40,20 @@ struct func_call_context {
 	struct gnu_asm *ctx;
 };
 
+static void align_stack(
+		struct text_block *beg_blk,
+		struct gnu_asm_func *fn,
+		struct gnu_asm *ctx);
 static void build_call(const struct mcb_func *callee, struct gnu_asm *ctx);
 static bool can_define_label(
 		const struct mcb_func *fn,
 		size_t label_idx,
 		size_t inst_idx);
-static int define_func_begin(struct mcb_func *fn, struct gnu_asm *ctx);
+static struct text_block *define_func_beg(struct mcb_func *fn, struct gnu_asm *ctx);
+static void define_func_end(
+		struct text_block *beg_blk,
+		struct mcb_func *fn,
+		struct gnu_asm *ctx);
 static void drop_arg(int idx, struct func_call_context *ctx);
 static void init_func_arg_value(int idx, struct mcb_func *fn);
 static void push_arg(int idx, struct func_call_context *ctx);
@@ -53,6 +61,38 @@ static void push_arg(int idx, struct func_call_context *ctx);
 static const enum GNU_ASM_REG arg_alloc_arr[] = {
 	RDI, RSI, RDX, RCX, R8, R9
 };
+
+void
+align_stack(struct text_block *beg_blk,
+		struct gnu_asm_func *fn,
+		struct gnu_asm *ctx)
+{
+	int aligned_stack, bytes;
+	struct text_block *blk;
+	struct gnu_asm_mem_obj *last_mem;
+	int last_mem_bytes;
+	int len;
+
+	assert(beg_blk && fn && ctx);
+
+	if (!fn->allocated_mem) {
+		assert(fn->allocated_mem_count == 0);
+		return;
+	}
+
+	last_mem = fn->allocated_mem[fn->allocated_mem_count - 1];
+	last_mem_bytes = map_value_kind_to_bytes(last_mem->user->kind);
+	bytes = -(last_mem->offset + last_mem_bytes);
+	aligned_stack = (bytes + 15) & -16;
+
+	estr_clean(&ctx->buf);
+	len = snprintf(ctx->buf.s, ctx->buf.siz, "subq $%d, %%rsp\n", aligned_stack);
+	if (len < 0)
+		eabort("snprintf()");
+	blk = text_block_from_str(&ctx->buf);
+
+	insert_text_block(&ctx->text, beg_blk, beg_blk->nex, blk);
+}
 
 void
 build_call(const struct mcb_func *callee, struct gnu_asm *ctx)
@@ -87,8 +127,8 @@ can_define_label(
 	return false;
 }
 
-int
-define_func_begin(struct mcb_func *fn, struct gnu_asm *ctx)
+struct text_block *
+define_func_beg(struct mcb_func *fn, struct gnu_asm *ctx)
 {
 	struct text_block *blk;
 	struct gnu_asm_func *f;
@@ -118,11 +158,25 @@ define_func_begin(struct mcb_func *fn, struct gnu_asm *ctx)
 	/* alloc func->args[*]->val_link->data */
 	if (fn->argc && !fn->args)
 		eabort("fn->argc > 0 && fn->args == NULL");
-	for (int i = 0; i < fn->argc; i++) {
+	for (int i = 0; i < fn->argc; i++)
 		init_func_arg_value(i, fn);
-	}
 
-	return 0;
+	return blk;
+}
+
+void
+define_func_end(
+		struct text_block *beg_blk,
+		struct mcb_func *fn,
+		struct gnu_asm *ctx)
+{
+	struct gnu_asm_func *f;
+
+	assert(beg_blk && fn && ctx);
+	f = fn->data;
+	assert(f);
+
+	align_stack(beg_blk, f, ctx);
 }
 
 void
@@ -213,10 +267,10 @@ push_arg(int idx, struct func_call_context *ctx)
 int
 define_func(struct mcb_func *fn, struct gnu_asm *ctx)
 {
+	struct text_block *beg_blk;
 	assert(fn && ctx);
 
-	if (define_func_begin(fn, ctx))
-		return 1;
+	beg_blk = define_func_beg(fn, ctx);
 	for (size_t i = 0, label_i = 0; i < fn->inst_arr_count; i++) {
 		if (can_define_label(fn, label_i, i)) {
 			define_label(fn->label_arr[label_i], fn, ctx);
@@ -226,6 +280,10 @@ define_func(struct mcb_func *fn, struct gnu_asm *ctx)
 		if (build_inst(fn->inst_arr[i], fn, ctx))
 			return 1;
 	}
+	define_func_end(beg_blk, fn, ctx);
+
+	/* destory allocated_mem */
+
 	return 0;
 }
 

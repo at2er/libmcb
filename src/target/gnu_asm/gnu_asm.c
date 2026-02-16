@@ -47,7 +47,7 @@ mcb_target_gnu_asm(FILE *stream, struct mcb_context *ctx)
 
 	text_block_for_each(cur, gnu_asm_ctx.text.beg) {
 		if (cur->s.s)
-			fwrite(cur->s.s, sizeof(*cur->s.s), cur->s.siz, stream);
+			fwrite(cur->s.s, sizeof(*cur->s.s), cur->s.len, stream);
 		destory_text_block(cur);
 	}
 	fflush(stream);
