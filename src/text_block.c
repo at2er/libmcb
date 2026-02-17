@@ -1,73 +1,102 @@
 /* This file is part of libmcb.
    SPDX-License-Identifier: LGPL-3.0-or-later
 */
-#include "mcb/text_block.h"
-#include "mcb/utils.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-struct mcb_text_block *mcb_create_text_block(const size_t siz)
-{
-	struct mcb_text_block *res = calloc(1, sizeof(*res));
-	res->str_siz = siz == 0
-		? MCB_DEFAULT_TEXT_BLOCK_STR_SIZ
-		: siz;
-	res->str = calloc(res->str_siz, sizeof(*res->str));
-	return res;
-}
+#define LIBMCB_STRIP
+#include "ealloc.h"
+#include "str.h"
+#include "text_block.h"
 
-void mcb_free_text_block(struct mcb_text_block *blk)
-{
-	if (!blk)
-		return;
-	free(blk->str);
-	free(blk);
-}
-
-void mcb_insert_text_block(struct mcb_text_block *b0,
-		struct mcb_text_block *b1,
-		struct mcb_text_block *blk)
-{
-	assert(b0 && blk);
-	if (b1) {
-		blk->next = b1;
-		b1->prev = blk;
-	} else {
-		blk->next = b0->next;
-		b0->next->prev = blk;
-	}
-	blk->prev = b0;
-	b0->next = blk;
-}
-
-void mcb_init_text_block_root(struct mcb_text_block_root *root)
-{
-	assert(root);
-	root->begin = NULL;
-	root->end = NULL;
-}
-
-void mcb_join_text_block(struct mcb_text_block_root *root,
-		struct mcb_text_block *blk)
+void
+append_text_block(
+		struct text_block_root *root,
+		struct text_block *blk)
 {
 	assert(root && blk);
-	blk->next = NULL;
-	blk->prev = root->end;
-	if (blk->prev) {
-		blk->prev->next = blk;
+	blk->nex = NULL;
+	blk->prv = root->end;
+	if (blk->prv) {
+		blk->prv->nex = blk;
 	} else {
-		root->begin = blk;
+		root->beg = blk;
 	}
 	root->end = blk;
 }
 
-void mcb_write_text_block(const struct mcb_text_block_root *root, FILE *fp)
+struct text_block *
+create_text_block(size_t siz)
 {
-	mcb_list_for_each(struct mcb_text_block, cur, root->begin) {
-		if (cur->str)
-			fwrite(cur->str, sizeof(*cur->str), cur->str_siz, fp);
-		mcb_free_text_block(cur);
+	struct text_block *res = ecalloc(1, sizeof(*res));
+	if (siz == 0)
+		siz = DEFAULT_TEXT_BLOCK_STR_SIZ;
+	estr_realloc(&res->s, siz);
+	return res;
+}
+
+void
+destory_text_block(struct text_block *blk)
+{
+	if (!blk)
+		return;
+	str_free(&blk->s);
+	free(blk);
+}
+
+void
+insert_text_block(
+		struct text_block_root *root,
+		struct text_block *prv,
+		struct text_block *nex,
+		struct text_block *cur)
+{
+	assert(root && prv && cur);
+
+	if (prv == root->end) {
+		assert(nex == root->end->nex);
+		root->end = cur;
 	}
-	fflush(fp);
+
+	if (prv) {
+		prv->nex = cur;
+	} else {
+		root->beg = cur;
+	}
+
+	if (nex) {
+		nex->prv = cur;
+	} else {
+		root->end = cur;
+	}
+
+	cur->prv = prv;
+	cur->nex = nex;
+}
+
+void
+init_text_block_root(struct text_block_root *root)
+{
+	assert(root);
+	root->beg = NULL;
+	root->end = NULL;
+}
+
+struct text_block *
+text_block_from_str(struct str *s)
+{
+	assert(s);
+	struct text_block *blk = ecalloc(1, sizeof(*blk));
+	estr_from_cstr(&blk->s, s->s);
+	return blk;
+}
+
+struct text_block *
+mcb__text_block_from_cstr(const char *s)
+{
+	assert(s);
+	struct text_block *blk = ecalloc(1, sizeof(*blk));
+	estr_from_cstr(&blk->s, s);
+	return blk;
 }

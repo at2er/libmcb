@@ -1,0 +1,44 @@
+/* This file is part of libmcb.
+   SPDX-License-Identifier: LGPL-3.0-or-later
+*/
+#include <assert.h>
+#include <string.h>
+#include "mcb/func.h"
+#include "mcb/label.h"
+
+#include "darr.h"
+#include "ealloc.h"
+#include "err.h"
+
+int
+mcb_append_label(struct mcb_label *label, struct mcb_func *fn)
+{
+	if (!label || !fn)
+		ereturn(1, "!label || !fn");
+	darr_append(fn->label_arr, fn->label_arr_count, label);
+	return 0;
+}
+
+struct mcb_label *
+mcb_define_label(const char *name)
+{
+	struct mcb_label *l;
+	if (!name)
+		ereturn(NULL, "!name");
+	l = ecalloc(1, sizeof(*l));
+	l->name = strdup(name);
+	if (!l->name)
+		goto err_free_l;
+	return l;
+err_free_l:
+	free(l);
+	return NULL;
+}
+
+void
+mcb_destory_label(struct mcb_label *l)
+{
+	if (!l)
+		return;
+	free(l->name);
+}

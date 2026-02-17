@@ -1,3 +1,6 @@
 build
+compile_commands.json
 libmcb.a
+Session.vim
+test/main
 .cache
