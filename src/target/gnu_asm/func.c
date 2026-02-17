@@ -40,32 +40,34 @@ struct func_call_context {
 	struct gnu_asm *ctx;
 };
 
-static void align_stack(
-		struct text_block *beg_blk,
-		struct gnu_asm_func *fn,
-		struct gnu_asm *ctx);
+static void align_stack(struct gnu_asm_func *fn, struct gnu_asm *ctx);
 static void build_call(const struct mcb_func *callee, struct gnu_asm *ctx);
 static bool can_define_label(
 		const struct mcb_func *fn,
 		size_t label_idx,
 		size_t inst_idx);
 static struct text_block *define_func_beg(struct mcb_func *fn, struct gnu_asm *ctx);
-static void define_func_end(
-		struct text_block *beg_blk,
-		struct mcb_func *fn,
-		struct gnu_asm *ctx);
+static void define_func_end(struct mcb_func *fn, struct gnu_asm *ctx);
 static void drop_arg(int idx, struct func_call_context *ctx);
 static void init_func_arg_value(int idx, struct mcb_func *fn);
+static bool is_arg_reg(
+		enum GNU_ASM_REG reg,
+		int argc,
+		struct gnu_asm_value **args);
+static bool is_callee_save_reg(enum GNU_ASM_REG reg);
 static void push_arg(int idx, struct func_call_context *ctx);
+static void save_regs_before_call(struct func_call_context *ctx);
+
+static const enum GNU_ASM_REG callee_save_regs[] = {
+	RBX, R12, R13, R14, R15
+};
 
 static const enum GNU_ASM_REG arg_alloc_arr[] = {
 	RDI, RSI, RDX, RCX, R8, R9
 };
 
 void
-align_stack(struct text_block *beg_blk,
-		struct gnu_asm_func *fn,
-		struct gnu_asm *ctx)
+align_stack(struct gnu_asm_func *fn, struct gnu_asm *ctx)
 {
 	int aligned_stack, bytes;
 	struct text_block *blk;
@@ -73,7 +75,7 @@ align_stack(struct text_block *beg_blk,
 	int last_mem_bytes;
 	int len;
 
-	assert(beg_blk && fn && ctx);
+	assert(fn && ctx);
 
 	if (!fn->allocated_mem) {
 		assert(fn->allocated_mem_count == 0);
@@ -91,7 +93,10 @@ align_stack(struct text_block *beg_blk,
 		eabort("snprintf()");
 	blk = text_block_from_str(&ctx->buf);
 
-	insert_text_block(&ctx->text, beg_blk, beg_blk->nex, blk);
+	insert_text_block(&ctx->text,
+			fn->beg_blk,
+			fn->beg_blk->nex,
+			blk);
 }
 
 void
@@ -165,18 +170,16 @@ define_func_beg(struct mcb_func *fn, struct gnu_asm *ctx)
 }
 
 void
-define_func_end(
-		struct text_block *beg_blk,
-		struct mcb_func *fn,
+define_func_end(struct mcb_func *fn,
 		struct gnu_asm *ctx)
 {
 	struct gnu_asm_func *f;
 
-	assert(beg_blk && fn && ctx);
+	assert(fn && ctx);
 	f = fn->data;
 	assert(f);
 
-	align_stack(beg_blk, f, ctx);
+	align_stack(f, ctx);
 }
 
 void
@@ -224,6 +227,28 @@ init_func_arg_value(int idx, struct mcb_func *fn)
 		eabort("alloc_reg()");
 }
 
+bool
+is_arg_reg(enum GNU_ASM_REG reg, int argc, struct gnu_asm_value **args)
+{
+	assert(args);
+	for (int i = 0; i < argc; i++) {
+		assert(IS_REG(args[i]->kind));
+		if (args[i]->inner.reg == reg)
+			return true;
+	}
+	return false;
+}
+
+bool
+is_callee_save_reg(enum GNU_ASM_REG reg)
+{
+	for (int i = 0; i < (int)LENGTH(callee_save_regs); i++) {
+		if (reg == callee_save_regs[i])
+			return true;
+	}
+	return false;
+}
+
 void
 push_arg(int idx, struct func_call_context *ctx)
 {
@@ -264,13 +289,45 @@ push_arg(int idx, struct func_call_context *ctx)
 	darr_append(ctx->args, ctx->argc, arg);
 }
 
+void
+save_regs_before_call(struct func_call_context *ctx)
+{
+	struct gnu_asm_func *f;
+
+	assert(ctx);
+	assert(ctx->fn);
+	f = ctx->fn->data;
+	assert(f);
+
+	for (int i = 0; i < REG_COUNT; i++) {
+		if (is_callee_save_reg(i))
+			continue;
+		/* In push_arg(), the function argument registers of caller
+		 * are saved to memory. And the function argument registers
+		 * are just for callee only, don't need save. */
+		if (is_arg_reg(i, ctx->argc, ctx->args))
+			continue;
+		if (i == RAX || i == RBP || i == RSP)
+			continue;
+		if (!f->allocated_reg[i])
+			continue;
+		if (mov_reg_user_to_mem(i, ctx->fn, ctx->ctx))
+			eabort("mov_reg_user_to_mem()");
+		drop_reg(i, ctx->fn);
+	}
+}
+
 int
 define_func(struct mcb_func *fn, struct gnu_asm *ctx)
 {
 	struct text_block *beg_blk;
+	struct gnu_asm_func *f;
 	assert(fn && ctx);
 
 	beg_blk = define_func_beg(fn, ctx);
+	f = fn->data;
+	assert(f);
+	f->beg_blk = beg_blk;
 	for (size_t i = 0, label_i = 0; i < fn->inst_arr_count; i++) {
 		if (can_define_label(fn, label_i, i)) {
 			define_label(fn->label_arr[label_i], fn, ctx);
@@ -280,7 +337,7 @@ define_func(struct mcb_func *fn, struct gnu_asm *ctx)
 		if (build_inst(fn->inst_arr[i], fn, ctx))
 			return 1;
 	}
-	define_func_end(beg_blk, fn, ctx);
+	define_func_end(fn, ctx);
 
 	/* destory allocated_mem */
 
@@ -313,7 +370,7 @@ build_call_inst(struct mcb_inst *inst_outer,
 	result->inner.reg = alloc_reg(RAX, result, fn);
 	if (result->inner.reg == REG_COUNT) {
 		if (mov_reg_user(RAX, fn, ctx))
-			ereturn(1, "mov_reg_user()");
+			eabort("mov_reg_user()");
 		drop_reg(RAX, fn);
 		result->inner.reg = alloc_reg(RAX, result, fn);
 		if (result->inner.reg == REG_COUNT)
@@ -323,6 +380,7 @@ build_call_inst(struct mcb_inst *inst_outer,
 	for (int i = 0; i < inst->callee->argc; i++)
 		push_arg(i, &call_ctx);
 
+	save_regs_before_call(&call_ctx);
 	build_call(inst->callee, ctx);
 
 	for (int i = 0; i < call_ctx.argc; i++)

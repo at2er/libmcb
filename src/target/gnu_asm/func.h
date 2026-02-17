@@ -13,6 +13,7 @@ struct gnu_asm_func {
 	struct gnu_asm_mem_obj **allocated_mem;
 	int allocated_mem_count;
 	struct gnu_asm_value *allocated_reg[REG_COUNT];
+	struct text_block *beg_blk;
 };
 
 #ifdef LIBMCB_STRIP

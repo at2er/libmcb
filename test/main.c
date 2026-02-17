@@ -117,7 +117,7 @@ define_main_fn(struct mcb_func *fib_fn, struct mcb_context *ctx)
 
 	struct mcb_value *v0 =
 		mcb_define_value("v0", MCB_I32, main_fn);
-	mcb_inst_store_int(v0, 1, main_fn);
+	mcb_inst_store_int(v0, 35, main_fn);
 
 	struct mcb_value *vcall0 =
 		mcb_define_value("vcall0", MCB_I32, main_fn);

@@ -48,7 +48,7 @@ build_add_inst(struct mcb_inst *inst_outer,
 	struct text_block *blk;
 	struct str dst, src;
 	struct mcb_add_inst *inst;
-	struct gnu_asm_value *lhs_val, *rhs_val, *result, *tmp;
+	struct gnu_asm_value *lhs_val, *rhs_val, *result, *swap_tmp = NULL;
 	int len;
 
 	assert(inst_outer && fn && ctx);
@@ -74,16 +74,19 @@ build_add_inst(struct mcb_inst *inst_outer,
 
 	if (IS_REG(rhs_val->kind) && !IS_REG(lhs_val->kind)
 			&& inst->rhs->scope_end == inst_outer) {
-		tmp = lhs_val;
+		swap_tmp = lhs_val;
 		lhs_val = rhs_val;
-		rhs_val = tmp;
+		rhs_val = swap_tmp;
 	}
 
 	if (IS_REG(lhs_val->kind) && inst->lhs->scope_end == inst_outer) {
 		drop_reg(result->inner.reg, fn);
 		free(result);
 		result = lhs_val;
-		inst->lhs->data = NULL;
+		if (swap_tmp)
+			inst->rhs->data = NULL;
+		else
+			inst->lhs->data = NULL;
 		inst->result->data = result;
 	}
 
