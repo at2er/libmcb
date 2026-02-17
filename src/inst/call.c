@@ -77,7 +77,9 @@ mcb_inst_call(struct mcb_value *result,
 	if (mcb_use_value(inst, result))
 		goto err_free_inst_and_args;
 
-	return mcb_append_inst(inst, fn);
+	if (mcb_append_inst(inst, fn))
+		goto err_free_inst_and_args;
+	return 0;
 err_free_inst_and_args:
 	free(inst->inner.call.args);
 err_free_inst:

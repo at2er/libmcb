@@ -4,6 +4,7 @@
 #ifndef LIBMCB_INST_H
 #define LIBMCB_INST_H
 #include "mcb/inst/add.h"
+#include "mcb/inst/alloc_var.h"
 #include "mcb/inst/branch.h"
 #include "mcb/inst/call.h"
 #include "mcb/inst/cmp.h"
@@ -15,6 +16,7 @@
 
 enum MCB_INST_KIND {
 	MCB_ADD_INST,
+	MCB_ALLOC_VAR_INST,
 	MCB_BRANCH_INST,
 	MCB_CALL_INST,
 	MCB_CMP_INST,
@@ -28,15 +30,16 @@ enum MCB_INST_KIND {
 struct mcb_inst {
 	enum MCB_INST_KIND kind;
 	union {
-		struct mcb_add_inst    add;
-		struct mcb_branch_inst branch;
-		struct mcb_call_inst   call;
-		struct mcb_cmp_inst    cmp;
-		struct mcb_div_inst    div;
-		struct mcb_mul_inst    mul;
-		struct mcb_ret_inst    ret;
-		struct mcb_store_inst  store;
-		struct mcb_sub_inst    sub;
+		struct mcb_add_inst       add;
+		struct mcb_alloc_var_inst alloc_var;
+		struct mcb_branch_inst    branch;
+		struct mcb_call_inst      call;
+		struct mcb_cmp_inst       cmp;
+		struct mcb_div_inst       div;
+		struct mcb_mul_inst       mul;
+		struct mcb_ret_inst       ret;
+		struct mcb_store_inst     store;
+		struct mcb_sub_inst       sub;
 	} inner;
 };
 

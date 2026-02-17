@@ -16,15 +16,16 @@ build_inst(struct mcb_inst *inst,
 	assert(inst && fn && ctx);
 
 	switch (inst->kind) {
-	case MCB_ADD_INST:    return build_add_inst(inst, fn, ctx);
-	case MCB_BRANCH_INST: return build_branch_inst(inst, fn, ctx);
-	case MCB_CALL_INST:   return build_call_inst(inst, fn, ctx);
-	case MCB_CMP_INST:    return build_cmp_inst(inst, fn, ctx);
-	case MCB_DIV_INST:    return build_div_inst(inst, fn, ctx);
-	case MCB_MUL_INST:    return build_mul_inst(inst, fn, ctx);
-	case MCB_RET_INST:    return build_ret_inst(inst, fn, ctx);
-	case MCB_STORE_INST:  return build_store_inst(inst, fn, ctx);
-	case MCB_SUB_INST:    return build_sub_inst(inst, fn, ctx);
+	case MCB_ADD_INST:       return build_add_inst(inst, fn, ctx);
+	case MCB_ALLOC_VAR_INST: return build_alloc_var_inst(inst, fn, ctx);
+	case MCB_BRANCH_INST:    return build_branch_inst(inst, fn, ctx);
+	case MCB_CALL_INST:      return build_call_inst(inst, fn, ctx);
+	case MCB_CMP_INST:       return build_cmp_inst(inst, fn, ctx);
+	case MCB_DIV_INST:       return build_div_inst(inst, fn, ctx);
+	case MCB_MUL_INST:       return build_mul_inst(inst, fn, ctx);
+	case MCB_RET_INST:       return build_ret_inst(inst, fn, ctx);
+	case MCB_STORE_INST:     return build_store_inst(inst, ctx);
+	case MCB_SUB_INST:       return build_sub_inst(inst, fn, ctx);
 	}
 
 	return 0;
@@ -37,8 +38,8 @@ get_inst_suffix(enum GNU_ASM_VALUE_KIND dst_kind)
 	switch (dst_kind) {
 	case UNKOWN_VALUE:
 		return '\0';
-	CASE_I8_VALUE:  return 'l';
-	CASE_I16_VALUE: return 'l';
+	CASE_I8_VALUE:  return 'b';
+	CASE_I16_VALUE: return 'w';
 	CASE_I32_VALUE: return 'l';
 	CASE_I64_VALUE: return 'q';
 	case CMP_RESULT_VALUE:

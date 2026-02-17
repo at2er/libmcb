@@ -10,7 +10,8 @@ struct mcb_func_arg;
 
 enum MCB_VALUE_KIND {
 	MCB_NORMAL_VALUE,
-	MCB_FUNC_ARG_VALUE
+	MCB_FUNC_ARG_VALUE,
+	MCB_VAR_VALUE
 };
 
 struct mcb_value {

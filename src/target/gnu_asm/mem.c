@@ -28,7 +28,7 @@ alloc_stack_mem(int bytes,
 	mem = ecalloc(1, sizeof(*mem));
 	mem->base = RBP;
 	mem->user = user;
-	mem->using = true;
+	mem->kind = TMP_MEM;
 	if (f->allocated_mem_count) {
 		last = f->allocated_mem[f->allocated_mem_count - 1];
 		mem->offset = last->offset - bytes;

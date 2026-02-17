@@ -9,6 +9,7 @@
 #include "utils.h"
 
 #include "../ealloc.h"
+#include "../err.h"
 
 int
 mcb_inst_div(struct mcb_value *result,
@@ -19,7 +20,7 @@ mcb_inst_div(struct mcb_value *result,
 {
 	struct mcb_inst *inst;
 	if (!result || !lhs || !rhs || !rem || !fn)
-		return 1;
+		ereturn(1, "!result || !lhs || !rhs || !rem || !fn");
 	inst = ecalloc(1, sizeof(*inst));
 	inst->kind = MCB_DIV_INST;
 	inst->inner.div.result = result;
@@ -27,12 +28,17 @@ mcb_inst_div(struct mcb_value *result,
 	inst->inner.div.lhs = lhs;
 	inst->inner.div.rhs = rhs;
 	if (mcb_use_value(inst, result))
-		return 1;
+		goto err_free_inst;
 	if (mcb_use_value(inst, rem))
-		return 1;
+		goto err_free_inst;
 	if (mcb_use_value(inst, lhs))
-		return 1;
+		goto err_free_inst;
 	if (mcb_use_value(inst, rhs))
-		return 1;
-	return mcb_append_inst(inst, fn);
+		goto err_free_inst;
+	if (mcb_append_inst(inst, fn))
+		goto err_free_inst;
+	return 0;
+err_free_inst:
+	free(inst);
+	return 1;
 }

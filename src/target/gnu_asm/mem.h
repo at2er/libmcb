@@ -10,12 +10,18 @@
 
 #include "../../str.h"
 
+enum GNU_ASM_MEM_KIND {
+	UNUSING_MEM,
+	TMP_MEM,
+	VAR_MEM
+};
+
 struct gnu_asm_mem_obj {
 	enum GNU_ASM_REG base;
 	int offset;
 
+	enum GNU_ASM_MEM_KIND kind;
 	struct gnu_asm_value *user;
-	bool using;
 };
 
 #ifdef LIBMCB_STRIP

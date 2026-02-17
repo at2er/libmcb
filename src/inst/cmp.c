@@ -39,7 +39,9 @@ mcb_inst_cmp(struct mcb_value *result,
 	if (mcb_use_value(inst, rhs))
 		goto err_free_inst;
 
-	return mcb_append_inst(inst, fn);
+	if (mcb_append_inst(inst, fn))
+		goto err_free_inst;
+	return 0;
 err_free_inst:
 	free(inst);
 	return 1;

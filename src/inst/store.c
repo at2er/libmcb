@@ -9,6 +9,7 @@
 #include "utils.h"
 
 #include "../ealloc.h"
+#include "../err.h"
 
 int
 mcb_inst_store_int(struct mcb_value *container,
@@ -17,14 +18,17 @@ mcb_inst_store_int(struct mcb_value *container,
 {
 	struct mcb_inst *inst;
 	if (!container || !fn)
-		return 1;
+		ereturn(1, "!container || !fn");
 	inst = ecalloc(1, sizeof(*inst));
 	inst->kind = MCB_STORE_INST;
 	inst->inner.store.container = container;
 	inst->inner.store.operand.i = data;
 	if (mcb_use_value(inst, container))
-		return 1;
+		goto err_free_inst;
 	return mcb_append_inst(inst, fn);
+err_free_inst:
+	free(inst);
+	return 1;
 }
 
 int
@@ -34,12 +38,17 @@ mcb_inst_store_uint(struct mcb_value *container,
 {
 	struct mcb_inst *inst;
 	if (!container || !fn)
-		return 1;
-	inst = calloc(1, sizeof(*inst));
-	if (!inst)
-		return 1;
+		ereturn(1, "!container || !fn");
+	inst = ecalloc(1, sizeof(*inst));
 	inst->kind = MCB_STORE_INST;
 	inst->inner.store.container = container;
 	inst->inner.store.operand.u = data;
-	return mcb_append_inst(inst, fn);
+	if (mcb_use_value(inst, container))
+		goto err_free_inst;
+	if (mcb_append_inst(inst, fn))
+		goto err_free_inst;
+	return 0;
+err_free_inst:
+	free(inst);
+	return 1;
 }

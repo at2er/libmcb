@@ -18,6 +18,7 @@ gen_mov(struct str *s,
 		const struct gnu_asm_value *dst,
 		const struct gnu_asm_value *src)
 {
+	int len;
 	struct str dst_str, src_str;
 	assert(s && dst && src);
 
@@ -29,17 +30,17 @@ gen_mov(struct str *s,
 			return 0;
 	}
 
-	if (!str_from_value(&dst_str, dst))
-		return 1;
-	if (!str_from_value(&src_str, src))
-		return 1;
+	str_from_value(&dst_str, dst);
+	str_from_value(&src_str, src);
 
-	if (!str_realloc(s, 16 + dst_str.len + src_str.len + 1))
-		return 1;
-	s->len = snprintf(s->s, s->siz, "mov%c %s, %s\n",
+	estr_realloc(s, 16 + dst_str.len + src_str.len + 1);
+	len = snprintf(s->s, s->siz, "mov%c %s, %s\n",
 			get_inst_suffix(dst->kind),
 			src_str.s,
 			dst_str.s);
+	if (len < 0)
+		eabort("snprintf()");
+	s->len = len;
 
 	str_free(&dst_str);
 	str_free(&src_str);

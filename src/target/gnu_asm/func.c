@@ -85,7 +85,7 @@ align_stack(struct gnu_asm_func *fn, struct gnu_asm *ctx)
 
 	last_mem = fn->allocated_mem[fn->allocated_mem_count - 1];
 	last_mem_bytes = map_value_kind_to_bytes(last_mem->user->kind);
-	bytes = -(last_mem->offset + last_mem_bytes);
+	bytes = -(last_mem->offset) + last_mem_bytes;
 	aligned_stack = (bytes + 15) & -16;
 
 	estr_clean(&ctx->buf);

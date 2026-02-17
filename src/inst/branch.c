@@ -20,7 +20,7 @@ mcb_inst_branch(struct mcb_value *cmp_result,
 {
 	struct mcb_inst *inst;
 	if (!cmp_result || !on_true || !on_false || !fn)
-		return 1;
+		ereturn(1, "!cmp_result || !on_true || !on_false || !fn");
 	inst = ecalloc(1, sizeof(*inst));
 	inst->kind = MCB_BRANCH_INST;
 	inst->inner.branch.cmp_result = cmp_result;
@@ -28,7 +28,9 @@ mcb_inst_branch(struct mcb_value *cmp_result,
 	inst->inner.branch.on_false   = on_false;
 	if (mcb_use_value(inst, cmp_result))
 		goto err_free_inst;
-	return mcb_append_inst(inst, fn);
+	if (mcb_append_inst(inst, fn))
+		goto err_free_inst;
+	return 0;
 err_free_inst:
 	free(inst);
 	return 1;
