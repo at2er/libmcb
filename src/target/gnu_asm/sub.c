@@ -64,6 +64,7 @@ build_sub_inst(struct mcb_inst *inst_outer,
 
 	assert(inst->result->data == NULL);
 	result = ecalloc(1, sizeof(*result));
+	result->container = inst->result;
 	result->kind = map_type_to_value_kind(
 			I8_REG_VALUE,
 			inst->result->type);
@@ -79,6 +80,7 @@ build_sub_inst(struct mcb_inst *inst_outer,
 		inst->lhs->data = NULL;
 		inst->result->data = result;
 	}
+	result->container = inst->result;
 
 	mov_to_result(result, lhs_val, ctx);
 	str_from_value(&dst, result);

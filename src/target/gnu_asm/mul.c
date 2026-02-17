@@ -133,6 +133,7 @@ get_result(const struct mcb_value *res, struct mcb_func *fn)
 	assert(res && fn);
 	assert(res->data == NULL);
 	result = ecalloc(1, sizeof(*result));
+	result->container = res;
 	result->kind = map_type_to_value_kind(
 			I8_REG_VALUE,
 			res->type);
@@ -176,7 +177,8 @@ build_mul_inst(struct mcb_inst *inst_outer,
 			eabort("mov_reg_user()");
 		drop_reg(RAX, fn);
 	}
-	inst->result->data = result = get_result(inst->result, fn);
+	result = inst->result->data = get_result(inst->result, fn);
+	result->container = inst->result;
 
 	build_lhs(result, lhs_val, fn, ctx);
 	build_rhs(&src, rhs_val, fn, ctx);

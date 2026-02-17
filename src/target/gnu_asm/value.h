@@ -5,6 +5,8 @@
 #define LIBMCB_TARGET_GNU_ASM_VALUE_H
 #include <stdint.h>
 #include "mcb/inst/cmp.h"
+#include "mcb/value.h"
+
 #include "mem.h"
 #include "reg.h"
 #include "value_kind.h"
@@ -15,6 +17,7 @@ union gnu_asm_imm_value {
 };
 
 struct gnu_asm_value {
+	const struct mcb_value *container;
 	enum GNU_ASM_VALUE_KIND kind;
 	union {
 		union gnu_asm_imm_value imm;

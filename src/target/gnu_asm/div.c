@@ -176,6 +176,7 @@ get_result(const struct mcb_value *res, struct mcb_func *fn)
 	assert(res && fn);
 	assert(res->data == NULL);
 	result = ecalloc(1, sizeof(*result));
+	result->container = res;
 	result->kind = map_type_to_value_kind(
 			I8_REG_VALUE,
 			res->type);
@@ -224,6 +225,7 @@ build_div_inst(struct mcb_inst *inst_outer,
 			lhs_val->inner.reg == RAX &&
 			inst->lhs->scope_end == inst_outer) {
 		result = inst->result->data = lhs_val;
+		result->container = inst->result;
 		inst->lhs->data = NULL;
 	} else {
 		result = inst->result->data = get_result(inst->result, fn);

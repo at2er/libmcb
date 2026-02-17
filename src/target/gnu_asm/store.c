@@ -25,6 +25,7 @@ build_store_inst(struct mcb_inst *inst_outer,
 	struct gnu_asm_value *v;
 	assert(inst && fn && ctx);
 	v = ecalloc(1, sizeof(*v));
+	v->container = inst->container;
 	v->kind = map_type_to_value_kind(
 			I8_IMM_VALUE,
 			inst->container->type);

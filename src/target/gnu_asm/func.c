@@ -55,6 +55,7 @@ static bool is_arg_reg(
 		int argc,
 		struct gnu_asm_value **args);
 static bool is_callee_save_reg(enum GNU_ASM_REG reg);
+static bool is_scope_end_at_call(enum GNU_ASM_REG reg, struct func_call_context *ctx);
 static void push_arg(int idx, struct func_call_context *ctx);
 static void save_regs_before_call(struct func_call_context *ctx);
 
@@ -221,6 +222,7 @@ init_func_arg_value(int idx, struct mcb_func *fn)
 		eabort("unsupport, idx > LENGTH(arg_alloc_arr)");
 
 	gval = arg->val_link->data = ecalloc(1, sizeof(*gval));
+	gval->container = arg->val_link;
 	gval->kind = map_type_to_value_kind(I8_REG_VALUE, arg->type);
 	gval->inner.reg = alloc_reg(arg_alloc_arr[idx], gval, fn);
 	if (gval->inner.reg == REG_COUNT)
@@ -249,6 +251,22 @@ is_callee_save_reg(enum GNU_ASM_REG reg)
 	return false;
 }
 
+bool
+is_scope_end_at_call(enum GNU_ASM_REG reg, struct func_call_context *ctx)
+{
+	struct gnu_asm_func *f;
+	assert(ctx);
+	assert(ctx->fn);
+	assert(ctx->fn->args);
+	f = ctx->fn->data;
+	assert(f);
+	if (!f->allocated_reg[reg])
+		return true;
+	if (f->allocated_reg[reg]->container->scope_end == ctx->inst_outer)
+		return true;
+	return false;
+}
+
 void
 push_arg(int idx, struct func_call_context *ctx)
 {
@@ -269,6 +287,7 @@ push_arg(int idx, struct func_call_context *ctx)
 		return;
 
 	arg = ecalloc(1, sizeof(*arg));
+	arg->container = NULL;
 	arg->kind = remap_value_kind(I8_REG_VALUE, val->kind);
 	arg->inner.reg = alloc_reg(arg_alloc_arr[idx], arg, ctx->fn);
 	if (arg->inner.reg == REG_COUNT) {
@@ -296,10 +315,15 @@ save_regs_before_call(struct func_call_context *ctx)
 
 	assert(ctx);
 	assert(ctx->fn);
+	assert(ctx->fn->args);
 	f = ctx->fn->data;
 	assert(f);
 
 	for (int i = 0; i < REG_COUNT; i++) {
+		if (i == RAX || i == RBP || i == RSP)
+			continue;
+		if (!f->allocated_reg[i])
+			continue;
 		if (is_callee_save_reg(i))
 			continue;
 		/* In push_arg(), the function argument registers of caller
@@ -307,9 +331,7 @@ save_regs_before_call(struct func_call_context *ctx)
 		 * are just for callee only, don't need save. */
 		if (is_arg_reg(i, ctx->argc, ctx->args))
 			continue;
-		if (i == RAX || i == RBP || i == RSP)
-			continue;
-		if (!f->allocated_reg[i])
+		if (is_scope_end_at_call(i, ctx))
 			continue;
 		if (mov_reg_user_to_mem(i, ctx->fn, ctx->ctx))
 			eabort("mov_reg_user_to_mem()");
@@ -366,6 +388,7 @@ build_call_inst(struct mcb_inst *inst_outer,
 	call_ctx.ctx = ctx;
 
 	result = inst->result->data = ecalloc(1, sizeof(*result));
+	result->container = inst->result;
 	result->kind = map_type_to_value_kind(I8_REG_VALUE, inst->result->type);
 	result->inner.reg = alloc_reg(RAX, result, fn);
 	if (result->inner.reg == REG_COUNT) {
