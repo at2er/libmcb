@@ -11,6 +11,8 @@
 
 #ifdef LIBMCB_STRIP
 #define build_add_inst       mcb__gnu_asm_build_add_inst    /* add.c    */
+#define build_address_of_inst \
+	mcb__gnu_asm_build_address_of_inst           /* address_of.c    */
 #define build_alloc_var_inst \
 	mcb__gnu_asm_build_alloc_var_inst                /* alloc_var.c */
 #define build_branch_inst    mcb__gnu_asm_build_branch_inst /* branch.c */
@@ -26,6 +28,9 @@
 #endif
 
 int mcb__gnu_asm_build_add_inst(struct mcb_inst *inst_outer,
+		struct mcb_func *fn,
+		struct gnu_asm *ctx);
+int mcb__gnu_asm_build_address_of_inst(struct mcb_inst *inst_outer,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx);
 int mcb__gnu_asm_build_alloc_var_inst(struct mcb_inst *inst_outer,

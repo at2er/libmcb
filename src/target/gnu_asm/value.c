@@ -42,6 +42,7 @@ map_bytes_to_value_kind(enum GNU_ASM_VALUE_KIND base, int bytes)
 	case 4: return base + 2;
 	case 8: return base + 3;
 	}
+	eabort("map_bytes_to_value_kind()");
 	return UNKOWN_VALUE;
 }
 
@@ -50,12 +51,16 @@ map_type_to_value_kind(enum GNU_ASM_VALUE_KIND base, enum MCB_TYPE t)
 {
 	assert(base != UNKOWN_VALUE);
 	switch (t) {
-	case MCB_CMP_RESULT:        return UNKOWN_VALUE;
 	case MCB_U8:  case MCB_I8:  return base;
 	case MCB_U16: case MCB_I16: return base + 1;
 	case MCB_U32: case MCB_I32: return base + 2;
 	case MCB_U64: case MCB_I64: return base + 3;
+	case MCB_PTR:               return base + 3;
+	case MCB_CMP_RESULT:
+		eabort("unexpected 'CMP_RESULT_VALUE'");
+		break;
 	}
+	eabort("map_type_to_value_kind()");
 	return UNKOWN_VALUE;
 }
 
@@ -72,6 +77,7 @@ map_value_kind_to_bytes(enum GNU_ASM_VALUE_KIND kind)
 		eabort("unexpected dst_kind 'CMP_RESULT_VALUE'");
 		break;
 	}
+	eabort("map_value_kind_to_bytes()");
 	return -1;
 }
 
