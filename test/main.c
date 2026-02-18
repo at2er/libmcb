@@ -4,6 +4,7 @@
 #include "mcb/func.h"
 #include "mcb/inst/address_of.h"
 #include "mcb/inst/alloc_var.h"
+#include "mcb/inst/load.h"
 #include "mcb/inst/ret.h"
 #include "mcb/inst/store.h"
 #include "mcb/label.h"
@@ -34,9 +35,9 @@ define_main_fn(struct mcb_context *ctx)
 	mcb_inst_alloc_var(v0, main_fn);
 	mcb_inst_store_int(v0, 1145, main_fn);
 	mcb_inst_address_of(v1, v0, main_fn);
-	// mcb_inst_load(v2, v1, main_fn);
+	mcb_inst_load(v2, v1, main_fn);
 
-	mcb_inst_ret(v1, main_fn);
+	mcb_inst_ret(v2, main_fn);
 }
 
 int

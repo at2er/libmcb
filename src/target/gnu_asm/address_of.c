@@ -36,8 +36,9 @@ address_of_mem(struct gnu_asm_value *val,
 {
 	struct str dst, src;
 	struct text_block *blk;
-	struct gnu_asm_value *result;
 	int len;
+	struct gnu_asm_value *result;
+	struct gnu_asm_mem_obj *mem;
 	assert(val && inst && fn && ctx);
 	assert(inst->result);
 
@@ -52,6 +53,14 @@ address_of_mem(struct gnu_asm_value *val,
 
 	str_from_value(&dst, result);
 	str_from_mem(&src, val);
+
+	mem = ecalloc(1, sizeof(*mem));
+	mem->base = result->inner.reg;
+	mem->kind = VAR_MEM;
+	mem->offset = 0;
+	mem->user = result;
+	result->kind = map_type_to_value_kind(I8_MEM_VALUE, inst->val->type);
+	result->inner.mem = mem;
 
 	estr_clean(&ctx->buf);
 	len = snprintf(ctx->buf.s, ctx->buf.siz,

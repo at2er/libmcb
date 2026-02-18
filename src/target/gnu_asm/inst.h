@@ -20,6 +20,7 @@
 #define build_cmp_inst       mcb__gnu_asm_build_cmp_inst    /* cmp.c    */
 #define build_div_inst       mcb__gnu_asm_build_div_inst    /* div.c    */
 #define build_inst           mcb__gnu_asm_build_inst        /* inst.c   */
+#define build_load_inst      mcb__gnu_asm_build_load_inst   /* load.c   */
 #define build_mul_inst       mcb__gnu_asm_build_mul_inst    /* mul.c    */
 #define build_ret_inst       mcb__gnu_asm_build_ret_inst    /* ret.c    */
 #define build_store_inst     mcb__gnu_asm_build_store_inst  /* store.c  */
@@ -49,6 +50,9 @@ int mcb__gnu_asm_build_div_inst(struct mcb_inst *inst_outer,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx);
 int mcb__gnu_asm_build_inst(struct mcb_inst *inst,
+		struct mcb_func *fn,
+		struct gnu_asm *ctx);
+int mcb__gnu_asm_build_load_inst(struct mcb_inst *inst,
 		struct mcb_func *fn,
 		struct gnu_asm *ctx);
 int mcb__gnu_asm_build_mul_inst(struct mcb_inst *inst_outer,

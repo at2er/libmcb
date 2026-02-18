@@ -57,7 +57,11 @@ str_from_mem(struct str *s, const struct gnu_asm_value *v)
 	estr_empty(s);
 	estr_realloc(s, 32);
 
-	len = snprintf(s->s, s->siz, "%d(%s)", mem->offset, reg_cstr);
+	if (mem->offset == 0) {
+		len = snprintf(s->s, s->siz, "(%s)", reg_cstr);
+	} else {
+		len = snprintf(s->s, s->siz, "%d(%s)", mem->offset, reg_cstr);
+	}
 	if (len < 0)
 		goto err_free_s;
 	s->len = len;
