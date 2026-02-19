@@ -25,10 +25,14 @@ define_main_fn(struct mcb_context *ctx)
 	 * entry:
 	 *     %v0:struct A = alloc_struct
 	 *     %v0.i = store 114
-	 *     ret %v0.i
+	 *     %v0.l = store 514
+	 *     %v1:ptr = address_of %v0
+	 *     %v2:struct A = load %v1
+	 *     %v2.l = store 60
+	 *     ret %v2.l
 	 */
 	struct mcb_func *main_fn =
-		mcb_define_func("main", MCB_I32, MCB_EXPORT_FUNC, ctx);
+		mcb_define_func("_start", MCB_I32, MCB_EXPORT_FUNC, ctx);
 	struct mcb_func_arg *a0 =
 		mcb_define_func_arg("a0", MCB_I32, main_fn);
 	assert(a0);
@@ -50,17 +54,18 @@ define_main_fn(struct mcb_context *ctx)
 	mcb_inst_store_int(v0_i, 114, main_fn);
 	mcb_inst_store_int(v0_l, 514, main_fn);
 
-	struct mcb_value *v4 = mcb_define_value("v4", MCB_I32, main_fn);
-	mcb_inst_add(v4, v0_i, v0_l, main_fn); /* force generate 114 and 514 */
+	struct mcb_value *__v = mcb_define_value("__v", MCB_I32, main_fn);
+	mcb_inst_add(__v, v0_i, v0_l, main_fn); /* force generate 114 and 514 */
 
-	struct mcb_value *v2 = mcb_define_value("v2", MCB_PTR, main_fn);
-	struct mcb_value *v3 = mcb_define_struct_value("v3", a_struct, main_fn);
-	mcb_inst_address_of(v2, v0, main_fn);
-	mcb_inst_load(v3, v2, main_fn);
+	struct mcb_value *v1 = mcb_define_value("v1", MCB_PTR, main_fn);
+	struct mcb_value *v2 = mcb_define_struct_value("v2", a_struct, main_fn);
+	mcb_inst_address_of(v1, v0, main_fn);
+	mcb_inst_load(v2, v1, main_fn);
 
-	struct mcb_value *v3_l = mcb_get_value_from_struct(v3, a_struct, a_l_idx, main_fn);
+	struct mcb_value *v2_l = mcb_get_value_from_struct(v2, a_struct, a_l_idx, main_fn);
+	mcb_inst_store_int(v2_l, 60, main_fn);
 
-	mcb_inst_ret(v3_l, main_fn);
+	mcb_inst_ret(v2_l, main_fn);
 }
 
 int

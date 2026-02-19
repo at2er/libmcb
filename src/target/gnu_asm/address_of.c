@@ -80,15 +80,13 @@ address_of_struct(
 		struct gnu_asm *ctx)
 {
 	struct str dst, src;
-	int last;
 	struct gnu_asm_mem_obj *mem;
 	struct gnu_asm_value *result;
 	struct gnu_asm_value *val;
 
 	assert(struct_val && inst && fn && ctx);
 	assert(inst->val->kind == MCB_STRUCT_VALUE);
-	last = inst->val->inner.structure.structure->elems_count - 1;
-	val = struct_val->values[last];
+	val = struct_val->values[0];
 	assert(val);
 
 	result = inst->result->data = alloc_result(inst->result, fn);
