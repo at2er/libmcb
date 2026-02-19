@@ -21,11 +21,6 @@ mcb_inst_alloc_struct(
 	struct mcb_inst *inst;
 	if (!container || !structure || !fn)
 		ereturn(1, "!container || !structure || !fn");
-	container->kind = MCB_STRUCT_VALUE;
-	container->inner.structure.structure = structure;
-	container->inner.structure.values = ecalloc(
-			structure->elems_count,
-			sizeof(*container->inner.structure.values));
 	inst = ecalloc(1, sizeof(*inst));
 	inst->kind = MCB_ALLOC_STRUCT_INST;
 	inst->inner.alloc_struct.container = container;

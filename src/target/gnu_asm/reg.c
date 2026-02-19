@@ -88,6 +88,9 @@ reg_offset_from_kind(enum GNU_ASM_VALUE_KIND kind)
 	case CMP_RESULT_VALUE:
 		eabort("unexpected dst_kind 'CMP_RESULT_VALUE'");
 		break;
+	case STRUCT_VALUE:
+		eabort("unexpected dst_kind 'STRUCT_VALUE'");
+		break;
 	}
 	return -1;
 }

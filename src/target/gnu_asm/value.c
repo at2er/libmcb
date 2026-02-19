@@ -76,6 +76,9 @@ map_value_kind_to_bytes(enum GNU_ASM_VALUE_KIND kind)
 	case CMP_RESULT_VALUE:
 		eabort("unexpected dst_kind 'CMP_RESULT_VALUE'");
 		break;
+	case STRUCT_VALUE:
+		eabort("unexpected dst_kind 'STRUCT_VALUE'");
+		break;
 	}
 	eabort("map_value_kind_to_bytes()");
 	return -1;
@@ -124,6 +127,9 @@ str_from_value(struct str *s, const struct gnu_asm_value *v)
 		return str_from_reg(s, v->inner.reg, reg_off);
 	case CMP_RESULT_VALUE:
 		eabort("unexpected dst_kind 'CMP_RESULT_VALUE'");
+		break;
+	case STRUCT_VALUE:
+		eabort("unexpected dst_kind 'STRUCT_VALUE'");
 		break;
 	}
 	eabort("str_from_value()");

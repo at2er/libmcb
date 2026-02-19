@@ -1,16 +1,10 @@
 #include <assert.h>
 #include <stdio.h>
+#include "mcb/array.h"
 #include "mcb/context.h"
 #include "mcb/func.h"
-#include "mcb/inst/add.h"
-#include "mcb/inst/address_of.h"
-#include "mcb/inst/alloc_struct.h"
-#include "mcb/inst/alloc_var.h"
-#include "mcb/inst/load.h"
-#include "mcb/inst/ret.h"
-#include "mcb/inst/store.h"
+#include "mcb/inst.h"
 #include "mcb/label.h"
-#include "mcb/struct.h"
 #include "mcb/target/gnu_asm.h"
 #include "mcb/value.h"
 
@@ -48,18 +42,25 @@ define_main_fn(struct mcb_context *ctx)
 	assert(1 || a_i_idx);
 	assert(1 || a_l_idx);
 
-	struct mcb_value *v0 = mcb_define_value("v0", MCB_STRUCT, main_fn);
+	struct mcb_value *v0 = mcb_define_struct_value("v0", a_struct, main_fn);
 	mcb_inst_alloc_struct(v0, a_struct, main_fn);
 
-	struct mcb_value *v0_i = mcb_get_value_from_struct(v0, a_i_idx, main_fn);
-	struct mcb_value *v0_l = mcb_get_value_from_struct(v0, a_l_idx, main_fn);
+	struct mcb_value *v0_i = mcb_get_value_from_struct(v0, a_struct, a_i_idx, main_fn);
+	struct mcb_value *v0_l = mcb_get_value_from_struct(v0, a_struct, a_l_idx, main_fn);
 	mcb_inst_store_int(v0_i, 114, main_fn);
 	mcb_inst_store_int(v0_l, 514, main_fn);
 
-	struct mcb_value *v1 = mcb_define_value("v1", MCB_I32, main_fn);
-	mcb_inst_add(v1, v0_i, v0_l, main_fn);
+	struct mcb_value *v4 = mcb_define_value("v4", MCB_I32, main_fn);
+	mcb_inst_add(v4, v0_i, v0_l, main_fn); /* force generate 114 and 514 */
 
-	mcb_inst_ret(v1, main_fn);
+	struct mcb_value *v2 = mcb_define_value("v2", MCB_PTR, main_fn);
+	struct mcb_value *v3 = mcb_define_struct_value("v3", a_struct, main_fn);
+	mcb_inst_address_of(v2, v0, main_fn);
+	mcb_inst_load(v3, v2, main_fn);
+
+	struct mcb_value *v3_i = mcb_get_value_from_struct(v3, a_struct, a_i_idx, main_fn);
+
+	mcb_inst_ret(v3_i, main_fn);
 }
 
 int

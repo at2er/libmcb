@@ -30,10 +30,16 @@ int mcb_declare_struct_elem(
 		enum MCB_TYPE type,
 		struct mcb_struct *structure);
 
+struct mcb_value *mcb_define_struct_value(
+		const char *name,
+		struct mcb_struct *structure,
+		struct mcb_func *fn);
+
 void mcb_destory_struct(struct mcb_struct *structure);
 
 struct mcb_value *mcb_get_value_from_struct(
 		struct mcb_value *container,
+		struct mcb_struct *structure,
 		int idx,
 		struct mcb_func *fn);
 

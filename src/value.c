@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <string.h>
 #include "mcb/func.h"
+#include "mcb/struct.h"
 #include "mcb/value.h"
 
 #include "darr.h"
@@ -24,6 +25,8 @@ mcb_define_value(const char *name,
 	if (!val->name)
 		goto err_null_name;
 	val->type = type;
+	if (type == MCB_STRUCT)
+		val->kind = MCB_STRUCT_VALUE;
 	darr_append(fn->value_arr, fn->value_arr_count, val);
 	return val;
 err_null_name:

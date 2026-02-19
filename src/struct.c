@@ -53,6 +53,24 @@ err_dup_name:
 	ereturn(-1, "strdup(name)");
 }
 
+struct mcb_value *
+mcb_define_struct_value(
+		const char *name,
+		struct mcb_struct *structure,
+		struct mcb_func *fn)
+{
+	struct mcb_value *result;
+	if (!name || !structure)
+		ereturn(NULL, "!name || !structure");
+	result = mcb_define_value(name, MCB_STRUCT, fn);
+	result->kind = MCB_STRUCT_VALUE;
+	result->inner.structure.structure = structure;
+	result->inner.structure.values = ecalloc(
+			structure->elems_count,
+			sizeof(*result->inner.structure.values));
+	return result;
+}
+
 void
 mcb_destory_struct(struct mcb_struct *structure)
 {
@@ -64,6 +82,7 @@ mcb_destory_struct(struct mcb_struct *structure)
 struct mcb_value *
 mcb_get_value_from_struct(
 		struct mcb_value *container,
+		struct mcb_struct *structure,
 		int idx,
 		struct mcb_func *fn)
 {
@@ -76,17 +95,17 @@ mcb_get_value_from_struct(
 		ereturn(NULL, "!container || !fn");
 	if (container->kind != MCB_STRUCT_VALUE)
 		ereturn(NULL, "container isn't MCB_STRUCT_VALUE");
-	if (idx >= container->inner.structure.structure->elems_count)
+	if (idx >= structure->elems_count)
 		ereturnf(NULL, "no such element in struct by index %d", idx);
 
-	elem = container->inner.structure.structure->elems[idx];
+	elem = structure->elems[idx];
 	assert(elem);
 
 	estr_empty(&name);
 	value = ecalloc(1, sizeof(*value));
 	value->kind = MCB_STRUCT_ELEM_VALUE;
 	value->type = container->type;
-	value->inner.structure_elem.structure = container->inner.structure.structure;
+	value->inner.structure_elem.structure = structure;
 	value->inner.structure_elem.structure_container = container;
 	value->inner.structure_elem.idx = idx;
 	estr_realloc(&name,

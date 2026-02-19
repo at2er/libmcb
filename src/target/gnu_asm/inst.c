@@ -49,6 +49,9 @@ get_inst_suffix(enum GNU_ASM_VALUE_KIND dst_kind)
 	case CMP_RESULT_VALUE:
 		eabort("unexpected dst_kind 'CMP_RESULT_VALUE'");
 		break;
+	case STRUCT_VALUE:
+		eabort("unexpected dst_kind 'STRUCT_VALUE'");
+		break;
 	}
 	return '\0';
 }
