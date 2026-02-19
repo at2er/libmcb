@@ -19,6 +19,8 @@ mcb_inst_load(struct mcb_value *result,
 	struct mcb_inst *inst;
 	if (!result || !address || !fn)
 		ereturn(1, "!result || !address || !fn");
+	if (address->type != MCB_PTR)
+		ereturn(1, "address not pointer");
 	inst = ecalloc(1, sizeof(*inst));
 	inst->kind = MCB_LOAD_INST;
 	inst->inner.load.result = result;

@@ -58,9 +58,9 @@ define_main_fn(struct mcb_context *ctx)
 	mcb_inst_address_of(v2, v0, main_fn);
 	mcb_inst_load(v3, v2, main_fn);
 
-	struct mcb_value *v3_i = mcb_get_value_from_struct(v3, a_struct, a_i_idx, main_fn);
+	struct mcb_value *v3_l = mcb_get_value_from_struct(v3, a_struct, a_l_idx, main_fn);
 
-	mcb_inst_ret(v3_i, main_fn);
+	mcb_inst_ret(v3_l, main_fn);
 }
 
 int
