@@ -32,9 +32,7 @@ build_ret_inst(struct mcb_inst *inst_outer,
 	assert(inst->val->data);
 	src = inst->val->data;
 
-	dst.kind = map_type_to_value_kind(
-			I8_REG_VALUE,
-			inst->val->type);
+	dst.kind = remap_value_kind(I8_REG_VALUE, src->kind);
 	dst.inner.reg = RAX;
 
 	estr_clean(&ctx->buf);

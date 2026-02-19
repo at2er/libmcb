@@ -9,6 +9,9 @@
 struct mcb_context {
 	struct mcb_func **fn_arr;
 	size_t fn_arr_count;
+
+	struct mcb_struct **struct_arr;
+	size_t struct_arr_count;
 };
 
 int mcb_define_context(struct mcb_context *ctx);

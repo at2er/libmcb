@@ -7,11 +7,25 @@
 
 struct mcb_func;
 struct mcb_func_arg;
+struct mcb_struct_value;
 
 enum MCB_VALUE_KIND {
 	MCB_NORMAL_VALUE,
 	MCB_FUNC_ARG_VALUE,
+	MCB_STRUCT_VALUE,
+	MCB_STRUCT_ELEM_VALUE,
 	MCB_VAR_VALUE
+};
+
+struct mcb_value_inner_struct {
+	struct mcb_struct *structure;
+	struct mcb_value **values;
+};
+
+struct mcb_value_inner_struct_elem {
+	struct mcb_struct *structure;
+	struct mcb_value *structure_container;
+	int idx;
 };
 
 struct mcb_value {
@@ -23,6 +37,8 @@ struct mcb_value {
 
 	union {
 		struct mcb_func_arg *func_arg;
+		struct mcb_value_inner_struct structure;
+		struct mcb_value_inner_struct_elem structure_elem;
 	} inner;
 
 	void *data;

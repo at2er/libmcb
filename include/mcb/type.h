@@ -10,7 +10,7 @@ enum MCB_TYPE {
 
 	MCB_PTR,
 
-	MCB_CMP_RESULT
+	MCB_CMP_RESULT, MCB_STRUCT
 };
 
 #endif

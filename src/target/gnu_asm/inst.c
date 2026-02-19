@@ -18,6 +18,8 @@ build_inst(struct mcb_inst *inst,
 	switch (inst->kind) {
 	case MCB_ADD_INST:        return build_add_inst(inst, fn, ctx);
 	case MCB_ADDRESS_OF_INST: return build_address_of_inst(inst, fn, ctx);
+	case MCB_ALLOC_STRUCT_INST:
+		return build_alloc_struct_inst(inst, fn, ctx);
 	case MCB_ALLOC_VAR_INST:  return build_alloc_var_inst(inst, fn, ctx);
 	case MCB_BRANCH_INST:     return build_branch_inst(inst, fn, ctx);
 	case MCB_CALL_INST:       return build_call_inst(inst, fn, ctx);

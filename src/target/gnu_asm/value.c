@@ -26,9 +26,6 @@ drop_value(struct mcb_value *val, struct mcb_func *fn)
 
 	if (IS_REG(gval->kind))
 		drop_reg(gval->inner.reg, fn);
-
-	free(gval);
-	val->data = NULL;
 }
 
 enum GNU_ASM_VALUE_KIND
@@ -56,8 +53,11 @@ map_type_to_value_kind(enum GNU_ASM_VALUE_KIND base, enum MCB_TYPE t)
 	case MCB_U32: case MCB_I32: return base + 2;
 	case MCB_U64: case MCB_I64: return base + 3;
 	case MCB_PTR:               return base + 3;
+	case MCB_STRUCT:
+		eabort("unexpected type 'MCB_STRUCT'");
+		break;
 	case MCB_CMP_RESULT:
-		eabort("unexpected 'CMP_RESULT_VALUE'");
+		eabort("unexpected type 'MCB_CMP_RESULT'");
 		break;
 	}
 	eabort("map_type_to_value_kind()");

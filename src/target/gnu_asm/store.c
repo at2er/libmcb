@@ -12,22 +12,53 @@
 #include "gen_mov.h"
 #include "gnu_asm.h"
 #include "inst.h"
+#include "struct.h"
 #include "value.h"
 
 #include "../../ealloc.h"
 #include "../../err.h"
 #include "../../str.h"
 
+static int store_to_struct_elem(
+		struct mcb_inst *inst_outer,
+		struct gnu_asm *ctx);
+static int store_to_value(
+		struct gnu_asm_value *val,
+		struct mcb_inst *inst_outer,
+		struct gnu_asm *ctx);
 static int store_to_var(struct mcb_inst *inst_outer, struct gnu_asm *ctx);
 static int store_imm(struct mcb_store_inst *inst);
 
+/* shits 💩 */
 int
-store_to_var(struct mcb_inst *inst_outer, struct gnu_asm *ctx)
+store_to_struct_elem(
+		struct mcb_inst *inst_outer,
+		struct gnu_asm *ctx)
+{
+	struct mcb_store_inst *inst = &inst_outer->inner.store;
+	struct mcb_value_inner_struct_elem *struct_elem;
+	struct gnu_asm_struct_value *struct_val;
+	struct gnu_asm_value *val;
+
+	if (inst->container->scope_end == inst_outer)
+		return 0;
+
+	struct_elem = &inst->container->inner.structure_elem;
+	assert(struct_elem->structure_container);
+	struct_val = struct_elem->structure_container->data;
+	val = struct_val->values[struct_elem->idx];
+	
+	return store_to_value(val, inst_outer, ctx);
+}
+
+int
+store_to_value(struct gnu_asm_value *val,
+		struct mcb_inst *inst_outer,
+		struct gnu_asm *ctx)
 {
 	struct text_block *blk;
 	struct mcb_store_inst *inst = &inst_outer->inner.store;
 	struct gnu_asm_value src;
-	struct gnu_asm_value *val = inst->container->data;
 	assert(val);
 	if (inst->container->scope_end == inst_outer)
 		return 0;
@@ -42,6 +73,15 @@ store_to_var(struct mcb_inst *inst_outer, struct gnu_asm *ctx)
 	append_text_block(&ctx->text, blk);
 
 	return 0;
+}
+
+int
+store_to_var(struct mcb_inst *inst_outer, struct gnu_asm *ctx)
+{
+	struct mcb_store_inst *inst = &inst_outer->inner.store;
+	struct gnu_asm_value *val = inst->container->data;
+	assert(val);
+	return store_to_value(val, inst_outer, ctx);
 }
 
 int
@@ -72,7 +112,12 @@ build_store_inst(struct mcb_inst *inst_outer,
 	case MCB_NORMAL_VALUE:
 		return store_imm(inst);
 	case MCB_FUNC_ARG_VALUE:
-		ereturn(1, "store to value of function argument.");
+		ereturn(1, "store to value of function argument");
+	case MCB_STRUCT_VALUE:
+		eabort("store to value of struct directly");
+		break;
+	case MCB_STRUCT_ELEM_VALUE:
+		return store_to_struct_elem(inst_outer, ctx);
 	case MCB_VAR_VALUE:
 		return store_to_var(inst_outer, ctx);
 	}

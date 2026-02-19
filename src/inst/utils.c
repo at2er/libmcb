@@ -31,5 +31,8 @@ mcb_use_value(struct mcb_inst *inst, struct mcb_value *value)
 	if (!inst || !value)
 		ereturn(1, "!inst || !value");
 	value->scope_end = inst;
+	if (value->kind == MCB_STRUCT_ELEM_VALUE)
+		value->inner.structure_elem.structure_container
+			->scope_end = inst;
 	return 0;
 }
