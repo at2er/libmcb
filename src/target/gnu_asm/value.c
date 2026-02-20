@@ -77,6 +77,9 @@ map_type_to_value_kind(enum GNU_ASM_VALUE_KIND base, enum MCB_TYPE t)
 	case MCB_U32: case MCB_I32: return base + 2;
 	case MCB_U64: case MCB_I64: return base + 3;
 	case MCB_PTR:               return base + 3;
+	case MCB_ARRAY:
+		eabort("unexpected type 'MCB_ARRAY'");
+		break;
 	case MCB_STRUCT:
 		eabort("unexpected type 'MCB_STRUCT'");
 		break;

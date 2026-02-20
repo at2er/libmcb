@@ -18,6 +18,8 @@ build_inst(struct mcb_inst *inst,
 	switch (inst->kind) {
 	case MCB_ADD_INST:        return build_add_inst(inst, fn, ctx);
 	case MCB_ADDRESS_OF_INST: return build_address_of_inst(inst, fn, ctx);
+	case MCB_ALLOC_ARRAY_INST:
+		return build_alloc_array_inst(inst, fn, ctx);
 	case MCB_ALLOC_STRUCT_INST:
 		return build_alloc_struct_inst(inst, fn, ctx);
 	case MCB_ALLOC_VAR_INST:  return build_alloc_var_inst(inst, fn, ctx);
@@ -38,7 +40,6 @@ build_inst(struct mcb_inst *inst,
 char
 get_inst_suffix(enum GNU_ASM_VALUE_KIND dst_kind)
 {
-	/* TODO */
 	switch (dst_kind) {
 	case UNKOWN_VALUE:
 		return '\0';

@@ -19,6 +19,9 @@
 #include "../../err.h"
 #include "../../str.h"
 
+static int store_to_array_elem(
+		struct mcb_inst *inst_outer,
+		struct gnu_asm *ctx);
 static int store_to_struct_elem(
 		struct mcb_inst *inst_outer,
 		struct gnu_asm *ctx);
@@ -28,6 +31,27 @@ static int store_to_value(
 		struct gnu_asm *ctx);
 static int store_to_var(struct mcb_inst *inst_outer, struct gnu_asm *ctx);
 static int store_imm(struct mcb_store_inst *inst);
+
+int
+store_to_array_elem(
+		struct mcb_inst *inst_outer,
+		struct gnu_asm *ctx)
+{
+	struct mcb_store_inst *inst;
+	struct gnu_asm_value *val;
+	assert(inst_outer && ctx);
+	inst = &inst_outer->inner.store;
+	assert(inst);
+	assert(inst->container);
+
+	if (inst->container->scope_end == inst_outer)
+		return 0;
+
+	val = inst->container->data;
+	assert(val);
+
+	return store_to_value(val, inst_outer, ctx);
+}
 
 /* shits 💩 */
 int
@@ -111,6 +135,10 @@ build_store_inst(struct mcb_inst *inst_outer,
 	switch (inst->container->kind) {
 	case MCB_NORMAL_VALUE:
 		return store_imm(inst);
+	case MCB_ARRAY_VALUE:
+		eabort("store to value of array directly");
+	case MCB_ARRAY_ELEM_VALUE:
+		return store_to_array_elem(inst_outer, ctx);
 	case MCB_FUNC_ARG_VALUE:
 		ereturn(1, "store to value of function argument");
 	case MCB_STRUCT_VALUE:

@@ -8,6 +8,7 @@
 #include "mcb/context.h"
 #include "mcb/func.h"
 #include "mcb/struct.h"
+#include "mcb/value.h"
 
 #include "darr.h"
 #include "ealloc.h"

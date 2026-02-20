@@ -34,5 +34,8 @@ mcb_use_value(struct mcb_inst *inst, struct mcb_value *value)
 	if (value->kind == MCB_STRUCT_ELEM_VALUE)
 		value->inner.structure_elem.structure_container
 			->scope_end = inst;
+	if (value->kind == MCB_ARRAY_ELEM_VALUE)
+		value->inner.array_elem.array_container
+			->scope_end = inst;
 	return 0;
 }

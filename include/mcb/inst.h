@@ -5,6 +5,7 @@
 #define LIBMCB_INST_H
 #include "mcb/inst/add.h"
 #include "mcb/inst/address_of.h"
+#include "mcb/inst/alloc_array.h"
 #include "mcb/inst/alloc_struct.h"
 #include "mcb/inst/alloc_var.h"
 #include "mcb/inst/branch.h"
@@ -20,6 +21,7 @@
 enum MCB_INST_KIND {
 	MCB_ADD_INST,
 	MCB_ADDRESS_OF_INST,
+	MCB_ALLOC_ARRAY_INST,
 	MCB_ALLOC_STRUCT_INST,
 	MCB_ALLOC_VAR_INST,
 	MCB_BRANCH_INST,
@@ -38,6 +40,7 @@ struct mcb_inst {
 	union {
 		struct mcb_add_inst          add;
 		struct mcb_address_of_inst   address_of;
+		struct mcb_alloc_array_inst  alloc_array;
 		struct mcb_alloc_struct_inst alloc_struct;
 		struct mcb_alloc_var_inst    alloc_var;
 		struct mcb_branch_inst       branch;
