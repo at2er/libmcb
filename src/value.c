@@ -63,5 +63,12 @@ mcb_destory_value(struct mcb_value *val)
 {
 	if (!val)
 		return;
+	if (val->kind == MCB_STRUCT_VALUE) {
+		for (int i = 0; i < val->inner.structure
+				.structure->elems_count; i++)
+			mcb_destory_value(val->inner.structure.values[i]);
+		free(val->inner.structure.values);
+	}
 	free(val->name);
+	free(val);
 }

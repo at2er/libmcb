@@ -7,7 +7,6 @@
 
 struct mcb_func;
 struct mcb_func_arg;
-struct mcb_struct_value;
 
 enum MCB_VALUE_KIND {
 	MCB_NORMAL_VALUE,

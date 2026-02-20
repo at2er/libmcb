@@ -36,6 +36,7 @@ struct mcb_value *mcb_define_struct_value(
 		struct mcb_func *fn);
 
 void mcb_destory_struct(struct mcb_struct *structure);
+void mcb_destory_struct_elem(struct mcb_struct_elem *elem);
 
 struct mcb_value *mcb_get_value_from_struct(
 		struct mcb_value *container,

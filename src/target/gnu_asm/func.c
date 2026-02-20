@@ -411,3 +411,14 @@ build_call_inst(struct mcb_inst *inst_outer,
 
 	return 0;
 }
+
+void
+destory_func(struct mcb_func *container)
+{
+	struct gnu_asm_func *fn = container->data;
+	for (size_t i = 0; i < container->value_arr_count; i++)
+		destory_value(container->value_arr[i]);
+	free(fn->allocated_mem);
+	free(fn);
+	container->data = NULL;
+}

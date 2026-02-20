@@ -12,4 +12,11 @@ struct gnu_asm_struct_value {
 	struct gnu_asm_value **values;
 };
 
+#ifdef LIBMCB_STRIP
+#define destory_struct_value mcb__gnu_asm_destory_struct_value
+#endif
+
+void mcb__gnu_asm_destory_struct_value(
+		struct mcb_value *container);
+
 #endif

@@ -76,7 +76,21 @@ mcb_destory_struct(struct mcb_struct *structure)
 {
 	if (!structure)
 		return;
+	for (int i = 0; i < structure->elems_count; i++)
+		mcb_destory_struct_elem(structure->elems[i]);
+	if (structure->elems)
+		free(structure->elems);
 	free(structure->name);
+	free(structure);
+}
+
+void
+mcb_destory_struct_elem(struct mcb_struct_elem *elem)
+{
+	if (!elem)
+		return;
+	free(elem->name);
+	free(elem);
 }
 
 struct mcb_value *

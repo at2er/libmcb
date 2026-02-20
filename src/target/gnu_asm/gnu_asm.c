@@ -52,5 +52,10 @@ mcb_target_gnu_asm(FILE *stream, struct mcb_context *ctx)
 	}
 	fflush(stream);
 
+	for (size_t i = 0; i < ctx->fn_arr_count; i++)
+		destory_func(ctx->fn_arr[i]);
+
+	str_free(&gnu_asm_ctx.buf);
+
 	return 0;
 }

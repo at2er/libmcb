@@ -21,7 +21,7 @@ define_main_fn(struct mcb_context *ctx)
 	 *     l:i64
 	 * }
 	 *
-	 * fn main(%a0:i32)
+	 * fn _start(%a0:i32)
 	 * entry:
 	 *     %v0:struct A = alloc_struct
 	 *     %v0.i = store 114

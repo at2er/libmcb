@@ -69,6 +69,9 @@ address_of_mem(struct gnu_asm_value *val,
 
 	gen_lea(dst.s, src.s, I64_REG_VALUE, ctx);
 
+	str_free(&dst);
+	str_free(&src);
+
 	return 0;
 }
 
@@ -103,6 +106,9 @@ address_of_struct(
 	result->inner.mem = mem;
 
 	gen_lea(dst.s, src.s, I64_REG_VALUE, ctx);
+
+	str_free(&dst);
+	str_free(&src);
 
 	return 0;
 }

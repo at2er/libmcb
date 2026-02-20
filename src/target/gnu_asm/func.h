@@ -17,9 +17,11 @@ struct gnu_asm_func {
 };
 
 #ifdef LIBMCB_STRIP
-#define define_func mcb__gnu_asm_define_func
+#define define_func  mcb__gnu_asm_define_func
+#define destory_func mcb__gnu_asm_destory_func
 #endif
 
 int mcb__gnu_asm_define_func(struct mcb_func *fn, struct gnu_asm *ctx);
+void mcb__gnu_asm_destory_func(struct mcb_func *container);
 
 #endif

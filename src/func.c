@@ -7,6 +7,7 @@
 #include <string.h>
 #include "mcb/context.h"
 #include "mcb/func.h"
+#include "mcb/inst.h"
 
 #include "darr.h"
 #include "ealloc.h"
@@ -63,7 +64,8 @@ mcb_destory_func(struct mcb_func *fn)
 		mcb_destory_func_arg(fn->args[i]);
 	free(fn->args);
 
-	/* don't need free element now */
+	for (size_t i = 0; i < fn->inst_arr_count; i++)
+		mcb_destory_inst(fn->inst_arr[i]);
 	free(fn->inst_arr);
 
 	for (size_t i = 0; i < fn->label_arr_count; i++)
@@ -73,6 +75,9 @@ mcb_destory_func(struct mcb_func *fn)
 	for (size_t i = 0; i < fn->value_arr_count; i++)
 		mcb_destory_value(fn->value_arr[i]);
 	free(fn->value_arr);
+
+	free(fn->name);
+	free(fn);
 }
 
 void
@@ -81,4 +86,5 @@ mcb_destory_func_arg(struct mcb_func_arg *arg)
 	if (!arg)
 		return;
 	free(arg->name);
+	free(arg);
 }

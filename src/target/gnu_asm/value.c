@@ -9,11 +9,35 @@
 
 #define LIBMCB_STRIP
 #include "reg.h"
+#include "struct.h"
 #include "value.h"
 #include "value_kind.h"
 
 #include "../../err.h"
 #include "../../str.h"
+
+void
+destory_value(struct mcb_value *container)
+{
+	struct gnu_asm_value *val;
+	if (!container)
+		return;
+
+	if (container->kind == MCB_STRUCT_VALUE) {
+		assert(container->type == MCB_STRUCT);
+		destory_struct_value(container);
+		goto end;
+	}
+
+	val = container->data;
+	if (!val)
+		return;
+	if (IS_MEM(val->kind) || val->kind == STRUCT_VALUE)
+		free(val->inner.mem);
+end:
+	free(container->data);
+	container->data = NULL;
+}
 
 void
 drop_value(struct mcb_value *val, struct mcb_func *fn)

@@ -41,4 +41,5 @@ mcb_destory_label(struct mcb_label *l)
 	if (!l)
 		return;
 	free(l->name);
+	free(l);
 }
