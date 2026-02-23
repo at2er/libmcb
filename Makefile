@@ -16,7 +16,7 @@ OBJ_DEPS = $(addprefix $(BUILD_DIR)/,$(SRC:.c=.d))
 
 CC_CMD = $(CC) $(CFLAGS) -g3 -c -o $@ $<
 
-all: test $(TARGET)
+all: $(TARGET)
 
 $(OBJ_DIRS):
 	mkdir -p $@
@@ -34,7 +34,7 @@ clean:
 	@rm -f $(OBJ) $(TARGET)
 	@rm -f test/main
 
-install:
+install: $(TARGET)
 	mkdir -p $(HEADER_DIR) $(TARGET_DIR)
 	cp -rT include/$(HEADER) $(HEADER_DIR)/$(HEADER)
 	cp -f $(TARGET) $(TARGET_DIR)/$(TARGET)
